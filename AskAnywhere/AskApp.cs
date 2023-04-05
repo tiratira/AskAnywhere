@@ -133,7 +133,7 @@ namespace AskAnywhere
             _backendService.SetFinishedCallback(async () =>
             {
                 if (_vm != null) _vm.CurrentState = InputState.FINISH;
-                _dialog?.ChangeSize(114, _dialog.Height);
+                _dialog?.ChangeSize(112, _dialog.Height);
                 await Task.Delay(1000);
                 _dialog?.Close();
             });
@@ -148,7 +148,7 @@ namespace AskAnywhere
                 {
                     Debug.WriteLine($"mode:{_vm.AskMode}, target:{_vm.AskTarget}, prompt:{_vm.Prompt}");
                     _vm.CurrentState = InputState.OUTPUT;
-                    _dialog?.ChangeSize(150, 80);
+                    _dialog?.ChangeSize(140, 80);
                     _backendService.Ask(_vm.AskMode, _vm.AskTarget, _vm.Prompt);
                 }),
                 CancelCommand = new RelayCommand(() => { _dialog?.Close(); }),

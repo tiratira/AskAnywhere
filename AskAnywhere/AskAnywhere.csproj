@@ -14,9 +14,12 @@
   <ItemGroup>
     <None Remove="FodyWeavers.xml" />
     <None Remove="Red.ico" />
+    <None Remove="Resources\Icons\ask-white.png" />
     <None Remove="Resources\Icons\ask_anywhere_icon.ico" />
+    <None Remove="Resources\Icons\code-white.png" />
     <None Remove="Resources\Icons\code.png" />
     <None Remove="Resources\Icons\smile.png" />
+    <None Remove="Resources\Icons\translation-white.png" />
     <None Remove="Resources\Icons\translation.png" />
     <None Remove="Resources\Icons\马上提问.png" />
     <None Remove="Resources\Images\badge.png" />
@@ -27,7 +30,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\Icons\ask-white.png" />
     <Resource Include="Resources\Icons\ask_anywhere_icon.ico" />
+    <Resource Include="Resources\Icons\code-white.png" />
     <Resource Include="Resources\Icons\Red.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -54,6 +59,7 @@
     </Resource>
     <Resource Include="Resources\Icons\code.png" />
     <Resource Include="Resources\Icons\smile.png" />
+    <Resource Include="Resources\Icons\translation-white.png" />
     <Resource Include="Resources\Icons\translation.png" />
     <Resource Include="Resources\Icons\马上提问.png" />
     <Resource Include="Resources\Images\badge.png" />
