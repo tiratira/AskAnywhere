@@ -36,16 +36,16 @@
 ## Screenshots
 - Settings
 
-<img title="badge" alt="Alt text" src="./ScreenShots/1.png">
+<img title="badge" alt="Alt text" src="./Screenshots/1.png">
 
 - Ask mode
 
-<img title="badge" alt="Alt text" src="./ScreenShots/2.png">
+<img title="badge" alt="Alt text" src="./Screenshots/2.png">
 
 - Translation mode
 
-<img title="badge" alt="Alt text" src="./ScreenShots/3.png">
+<img title="badge" alt="Alt text" src="./Screenshots/3.png">
 
 - Code mode
 
-<img title="badge" alt="Alt text" src="./ScreenShots/4.png">
+<img title="badge" alt="Alt text" src="./Screenshots/4.png">
