@@ -1,0 +1,46 @@
+﻿{
+    "commands": [
+        {
+            "command": "ask",
+            "depend": -1,
+            "mode": 0,
+            "target": ""
+        },
+        {
+            "command": "code",
+            "depend": -1,
+            "mode": 1,
+            "target": ""
+        },
+        {
+            "command": "fy",
+            "depend": -1,
+            "mode": 2,
+            "target": ""
+        },
+        {
+            "command": "c#",
+            "depend": 1,
+            "mode": 1,
+            "target": "C#"
+        },
+        {
+            "command": "java",
+            "depend": 1,
+            "mode": 1,
+            "target": "Java"
+        },
+        {
+            "command": "en",
+            "depend": 2,
+            "mode": 2,
+            "target": "英文"
+        },
+        {
+            "command": "jp",
+            "depend": 2,
+            "mode": 2,
+            "target": "日文"
+        }
+    ]
+}

@@ -1,0 +1,281 @@
+﻿<Window x:Class="AskAnywhere.AskDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AskAnywhere"
+        xmlns:spinner="clr-namespace:xamlSpinnersWPF"
+        mc:Ignorable="d"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        WindowStartupLocation="Manual"
+        ShowInTaskbar="False"
+        Title="AskDialog"
+        Height="80"
+        Width="240"
+        Topmost="True">
+    <Window.DataContext>
+        <local:AskDialogViewModel AskMode="ASK"
+                                  AskTarget="中文"
+                                  CurrentState="INPUT" />
+    </Window.DataContext>
+    <Grid Margin="20">
+        <Grid.Effect>
+            <DropShadowEffect BlurRadius="10"
+                              Direction="-90"
+                              RenderingBias="Quality"
+                              Opacity="0.2"
+                              ShadowDepth="2" />
+        </Grid.Effect>
+        <Border CornerRadius="8"
+                Background="White"
+                BorderThickness="1"
+                BorderBrush="#A6A6A6">
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Stretch">
+
+                <spinner:ucSpinnerDotCircle Width="24"
+                                            Height="24"
+                                            Margin="8 0 0 0">
+                    <spinner:ucSpinnerDotCircle.Style>
+                        <Style TargetType="spinner:ucSpinnerDotCircle">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="INPUT">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="FINISH">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </spinner:ucSpinnerDotCircle.Style>
+
+                </spinner:ucSpinnerDotCircle>
+
+
+
+                <Image Width="16"
+                       Height="16"
+                       Margin="8 0 0 0">
+                    <Image.Style>
+                        <Style TargetType="{x:Type Image}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="OUTPUT">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+
+                                <DataTrigger Binding="{Binding AskMode}"
+                                             Value="ASK">
+                                    <Setter Property="Source"
+                                            Value="/AskAnywhere;component/Resources/Icons/马上提问.png" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding AskMode}"
+                                             Value="CODE">
+                                    <Setter Property="Source"
+                                            Value="/AskAnywhere;component/Resources/Icons/code.png" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding AskMode}"
+                                             Value="TRANSLATION">
+                                    <Setter Property="Source"
+                                            Value="/AskAnywhere;component/Resources/Icons/translation.png" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="FINISH">
+                                    <Setter Property="Source"
+                                            Value="/AskAnywhere;component/Resources/Icons/smile.png" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+
+                <TextBlock FontSize="14"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Margin="8 0 0 0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="INPUT">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="FINISH">
+                                    <Setter Property="Visibility"
+                                            Value="Visible" />
+                                    <Setter Property="Foreground"
+                                            Value="#00BAAD" />
+                                    <Setter Property="Text"
+                                            Value="完成" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="OUTPUT">
+                                    <Setter Property="Visibility"
+                                            Value="Visible" />
+                                    <Setter Property="Foreground"
+                                            Value="Red" />
+                                    <Setter Property="Text"
+                                            Value="思考中..." />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <TextBlock FontSize="14"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Margin="4 0 0 0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="OUTPUT">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="FINISH">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding AskMode}"
+                                             Value="ASK">
+                                    <Setter Property="Foreground"
+                                            Value="#FF5733" />
+                                    <Setter Property="Text"
+                                            Value="提问" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding AskMode}"
+                                             Value="CODE">
+                                    <Setter Property="Foreground"
+                                            Value="#FF8D1A" />
+                                    <Setter Property="Text"
+                                            Value="代码" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding AskMode}"
+                                             Value="TRANSLATION">
+                                    <Setter Property="Foreground"
+                                            Value="#2A82E4" />
+                                    <Setter Property="Text"
+                                            Value="翻译" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <Border VerticalAlignment="Center"
+                        Margin="4 0 0 0"
+                        CornerRadius="8">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="OUTPUT">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding InputState}"
+                                             Value="FINISH">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding AskMode}"
+                                             Value="ASK">
+                                    <Setter Property="Background"
+                                            Value="#FF5733" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding AskMode}"
+                                             Value="CODE">
+                                    <Setter Property="Background"
+                                            Value="#FF8D1A" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding AskMode}"
+                                             Value="TRANSLATION">
+                                    <Setter Property="Background"
+                                            Value="#2A82E4" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock Text="{Binding AskTarget}"
+                               x:Name="TargetBlock"
+                               Foreground="White"
+                               Margin="4"
+                               FontWeight="Bold">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentState}"
+                                                 Value="OUTPUT">
+                                        <Setter Property="Visibility"
+                                                Value="Collapsed" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentState}"
+                                                 Value="FINISH">
+                                        <Setter Property="Visibility"
+                                                Value="Collapsed" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding AskMode}"
+                                                 Value="ASK">
+                                        <Setter Property="Visibility"
+                                                Value="Collapsed" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding AskTarget}"
+                                                 Value="">
+                                        <Setter Property="Visibility"
+                                                Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Border>
+                <TextBox x:Name="InputBox"
+                         Text="{Binding Prompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         BorderThickness="0"
+                         FontSize="14"
+                         VerticalAlignment="Center"
+                         TextWrapping="Wrap"
+                         MaxWidth="240"
+                         TextChanged="InputBox_TextChanged"
+                         Margin="8">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="OUTPUT">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="FINISH">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Return"
+                                    Command="{Binding ConfirmCommand}" />
+                        <KeyBinding Key="Esc"
+                                    Command="{Binding CancelCommand}" />
+                        <KeyBinding Key="Space"
+                                    Command="{Binding ModeCommand}"
+                                    CommandParameter="{Binding ElementName=InputBox}" />
+                    </TextBox.InputBindings>
+                </TextBox>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
