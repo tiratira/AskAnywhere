@@ -2,6 +2,8 @@
 
 <img title="badge" alt="Alt text" src="./AskAnywhere/Resources/Images/badge.png">
 
+<img title="badge" alt="Alt text" src="./Screenshots/0.png">
+
 ## Ask OpenAI anywhere you like (in Windows) 📝
 
 ---

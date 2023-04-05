@@ -8,6 +8,7 @@
     <StartupObject>AskAnywhere.App</StartupObject>
     <UseWindowsForms>True</UseWindowsForms>
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <ApplicationIcon>Resources\Icons\appicon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +20,10 @@
     <None Remove="Resources\Icons\translation.png" />
     <None Remove="Resources\Icons\马上提问.png" />
     <None Remove="Resources\Images\badge.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\Icons\appicon.ico" />
   </ItemGroup>
 
   <ItemGroup>

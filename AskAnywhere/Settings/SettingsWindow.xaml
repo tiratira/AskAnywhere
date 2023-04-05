@@ -11,6 +11,7 @@
            Title="AskAnywhere 选项设置"
            ResizeMode="NoResize"
            WindowStartupLocation="CenterScreen"
+           Icon="/AskAnywhere;component/Resources/Icons/ask_anywhere_icon.ico"
            Background="White"
            Height="450"
            Width="320">
