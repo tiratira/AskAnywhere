@@ -61,8 +61,6 @@
 
                 </spinner:ucSpinnerDotCircle>
 
-                
-
                 <Border Margin="4"
                         CornerRadius="4">
                     <Border.Style>
@@ -213,6 +211,7 @@
 
                 <Border VerticalAlignment="Center"
                         Margin="0 0 4 0"
+                        Height="26"
                         Background="#ccc"
                         CornerRadius="4">
                     <Border.Style>
@@ -223,7 +222,7 @@
                                     <Setter Property="Visibility"
                                             Value="Collapsed" />
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding InputState}"
+                                <DataTrigger Binding="{Binding CurrentState}"
                                              Value="FINISH">
                                     <Setter Property="Visibility"
                                             Value="Collapsed" />
@@ -234,7 +233,8 @@
                     <TextBlock Text="{Binding AskTarget}"
                                x:Name="TargetBlock"
                                Foreground="#555"
-                               Margin="4"
+                               Margin="4 0"
+                               VerticalAlignment="Center"
                                FontWeight="Bold">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">

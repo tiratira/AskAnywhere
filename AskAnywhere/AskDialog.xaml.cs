@@ -54,7 +54,6 @@ namespace AskAnywhere
 
         private void InputBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            Debug.WriteLine(InputBox.ActualWidth);
             if (InputBox.ActualWidth + TargetBlock.ActualWidth >= 110)
             {
                 Width = InputBox.ActualWidth + TargetBlock.ActualWidth + 140;

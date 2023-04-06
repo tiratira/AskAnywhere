@@ -32,6 +32,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="96" />
+            <RowDefinition Height="0" />
             <RowDefinition Height="1*" />
             <RowDefinition Height="48" />
         </Grid.RowDefinitions>
@@ -41,7 +42,7 @@
                    Width="320"
                    Height="96" />
         </StackPanel>
-        <Border Grid.Row="1">
+        <Border Grid.Row="2">
             <StackPanel Margin="8"
                         Orientation="Vertical">
                 <TextBlock Margin="8"
@@ -103,7 +104,7 @@
                 </Border>
             </StackPanel>
         </Border>
-        <Border Grid.Row="2">
+        <Border Grid.Row="3">
             <Button Content="确认"
                     Click="Button_Click"
                     Command="{Binding ConfirmCommand}"

@@ -95,7 +95,11 @@ namespace AskAnywhere
         private void OnAsk(object? sender, HotkeyEventArgs e)
         {
             DisableKeyboardHook();
-            Utils.GetCaretPosition(out _cachedX, out _cachedY, out _cachedWidth, out _cachedHeight, out _hWnd);
+            if (!Utils.GetCaretPosition(out _cachedX, out _cachedY, out _cachedWidth, out _cachedHeight, out _hWnd))
+            {
+                Debug.WriteLine("no caret found or error occurs.");
+                return;
+            }
 
             // We get the target backend type name here from settings.
             var backendTypeName = Properties.Settings.Default.BackendType;
@@ -124,9 +128,20 @@ namespace AskAnywhere
             // If backend service instance created successfully, then we can properly set essential callbacks to work.
             _backendService.SetTextReceivedCallback(text =>
             {
-                Utils.SetActiveWindowAndCaret(_hWnd, _cachedX, _cachedY);
+                if (!Utils.SetActiveWindowAndCaret(_hWnd, _cachedX, _cachedY))
+                {
+                    Debug.WriteLine("set caret failed, please check out the code.");
+                    return;
+                }
+
                 SendText(text);
-                Utils.GetCaretPosition(out _cachedX, out _cachedY, out _cachedWidth, out _cachedHeight, out _hWnd);
+
+                if (!Utils.GetCaretPosition(out _cachedX, out _cachedY, out _cachedWidth, out _cachedHeight, out _hWnd))
+                {
+                    Debug.WriteLine("no caret found or error occurs.");
+                    return;
+                }
+
                 _dialog?.MoveTo((_cachedX - 20) / _dpiRatio, _cachedY / _dpiRatio);
             });
 
@@ -150,6 +165,12 @@ namespace AskAnywhere
                     _vm.CurrentState = InputState.OUTPUT;
                     _dialog?.ChangeSize(140, 80);
                     _backendService.Ask(_vm.AskMode, _vm.AskTarget, _vm.Prompt);
+
+                    if (!Utils.SetActiveWindowAndCaret(_hWnd, _cachedX, _cachedY))
+                    {
+                        Debug.WriteLine("set caret failed, please check out the code.");
+                        return;
+                    }
                 }),
                 CancelCommand = new RelayCommand(() => { _dialog?.Close(); }),
             };
@@ -193,7 +214,7 @@ namespace AskAnywhere
 
         /// <summary>
         /// a tricky method to input texts into target caret position.
-        /// we copy text parts into copyboard, and simulate a 'ctrl+c' key input on target caret place.
+        /// we copy text parts into copyboard, and simulate a 'ctrl+v' key input on target caret place.
         /// </summary>
         /// <param name="data"></param>
         public void SendText(string data)
