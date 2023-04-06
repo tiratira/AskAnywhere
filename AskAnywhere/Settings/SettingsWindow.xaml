@@ -13,7 +13,7 @@
            WindowStartupLocation="CenterScreen"
            Icon="/AskAnywhere;component/Resources/Icons/ask_anywhere_icon.ico"
            Background="White"
-           Height="450"
+           Height="600"
            Width="320">
     <hc:Window.Resources>
         <ResourceDictionary>
@@ -26,13 +26,13 @@
     </hc:Window.Resources>
 
     <hc:Window.DataContext>
-        <Settings:SettingsViewModel ConnectionMode="OPENAI" />
+        <Settings:SettingsViewModel ConnectionMode="OPENAI_DIRECT" />
     </hc:Window.DataContext>
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="96" />
-            <RowDefinition Height="0" />
+            <RowDefinition Height="48" />
             <RowDefinition Height="1*" />
             <RowDefinition Height="48" />
         </Grid.RowDefinitions>
@@ -42,68 +42,28 @@
                    Width="320"
                    Height="96" />
         </StackPanel>
-        <Border Grid.Row="2">
-            <StackPanel Margin="8"
-                        Orientation="Vertical">
-                <TextBlock Margin="8"
-                           TextWrapping="Wrap">
-                    请选择Ask Anywhere的AI后端提供平台。请注意，选择一项平台后您需要填写对应的API Key才能正常使用Ask Anywhere。
-                </TextBlock>
-                <Border CornerRadius="6"
-                        x:Name="SelectionBorder"
-                        BorderThickness="1"
-                        Margin="0 4">
-                    <Border.Style>
-                        <Style TargetType="Border">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding ConnectionMode}"
-                                             Value="OPENAI">
-                                    <Setter Property="BorderBrush"
-                                            Value="{StaticResource PrimaryBrush}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Style>
-                    <StackPanel Orientation="Vertical">
-                        <RadioButton Margin="8"
-                                     FontWeight="Bold"
-                                     IsChecked="{Binding ConnectionMode,Converter={StaticResource EnumToValueConverter}, ConverterParameter=0}"
-                                     GroupName="moderp"
-                                     HorizontalAlignment="Left"
-                                     Content="OpenAI" />
-                        <hc:TextBox hc:InfoElement.Placeholder="请输入OpenAI API Key"
-                                    Text="{Binding OpenAIApiKey,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    Margin="32 0 8 8"></hc:TextBox>
-                    </StackPanel>
-                </Border>
-                <Border CornerRadius="6"
-                        BorderThickness="1"
-                        Margin="0 4">
-                    <Border.Style>
-                        <Style TargetType="Border">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding ConnectionMode}"
-                                             Value="AICLOUD">
-                                    <Setter Property="BorderBrush"
-                                            Value="{StaticResource PrimaryBrush}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Style>
-                    <StackPanel Orientation="Vertical">
-                        <RadioButton Margin="8"
-                                     FontWeight="Bold"
-                                     IsChecked="{Binding ConnectionMode,Converter={StaticResource EnumToValueConverter}, ConverterParameter=1}"
-                                     GroupName="moderp"
-                                     HorizontalAlignment="Left"
-                                     Content="AICloud (AI一点通)" />
-                        <hc:TextBox hc:InfoElement.Placeholder="请输入AICloud Key"
-                                    Text="{Binding AICloudKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    Margin="32 0 8 8"></hc:TextBox>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
+        <Border Grid.Row="1">
+            <hc:ButtonGroup Margin="8"
+                            VerticalAlignment="Center">
+                <RadioButton IsChecked="{Binding CurrentPage,Converter={StaticResource EnumToValueConverter}, ConverterParameter=0}"
+                             hc:IconElement.Geometry="{StaticResource LanguageIcon}"
+                             Command="{Binding ChangePageCommand}"
+                             CommandParameter="0"
+                             Content="语言设置" />
+                <RadioButton Content="服务设置"
+                             IsChecked="{Binding CurrentPage,Converter={StaticResource EnumToValueConverter}, ConverterParameter=1}"
+                             hc:IconElement.Geometry="{StaticResource ServerIcon}"
+                             Command="{Binding ChangePageCommand}"
+                             CommandParameter="1" />
+                <RadioButton Content="代理设置"
+                             IsChecked="{Binding CurrentPage,Converter={StaticResource EnumToValueConverter}, ConverterParameter=2}"
+                             hc:IconElement.Geometry="{StaticResource ProxyIcon2}"
+                             Command="{Binding ChangePageCommand}"
+                             CommandParameter="2" />
+            </hc:ButtonGroup>
         </Border>
+        <Frame Grid.Row="2"></Frame>
+
         <Border Grid.Row="3">
             <Button Content="确认"
                     Click="Button_Click"

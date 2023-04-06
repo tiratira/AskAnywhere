@@ -100,6 +100,7 @@ namespace AskAnywhere
                 Debug.WriteLine("no caret found or error occurs.");
                 return;
             }
+            Debug.WriteLine($"caret pos: {_cachedX}, {_cachedY}");
 
             // We get the target backend type name here from settings.
             var backendTypeName = Properties.Settings.Default.BackendType;
@@ -142,7 +143,7 @@ namespace AskAnywhere
                     return;
                 }
 
-                _dialog?.MoveTo((_cachedX - 20) / _dpiRatio, _cachedY / _dpiRatio);
+                _dialog?.MoveTo((_cachedX - 20) / _dpiRatio, (_cachedY + _cachedHeight - 22) / _dpiRatio);
             });
 
             _backendService.SetFinishedCallback(async () =>
@@ -186,7 +187,7 @@ namespace AskAnywhere
             _dialog.Closed += Dialog_Closed;
             _dialog.InputBox.LostKeyboardFocus += Dialog_LostFocus;
             _dialog.Left = (_cachedX - 20) / _dpiRatio;
-            _dialog.Top = _cachedY / _dpiRatio;
+            _dialog.Top = (_cachedY + _cachedHeight - 22) / _dpiRatio;
             _dialog.Show();
             _dialog.Activate();
             _dialog.Topmost = false; //HACK: focus issue fix
@@ -217,10 +218,20 @@ namespace AskAnywhere
         /// we copy text parts into copyboard, and simulate a 'ctrl+v' key input on target caret place.
         /// </summary>
         /// <param name="data"></param>
-        public void SendText(string data)
+        public void SendText(string data) 
         {
-            System.Windows.Clipboard.SetDataObject(data, true);
-            SendKeys.SendWait("^v");
+            if (string.IsNullOrEmpty(data))
+            {
+                return;
+            }
+
+            if (!Utils.SendTextToCaret(_hWnd, data))
+            {
+                Debug.WriteLine("ERROR: can not send text!");
+            }
+
+            //System.Windows.Clipboard.SetDataObject(data, true);
+            //SendKeys.SendWait("^v");
         }
     }
 }

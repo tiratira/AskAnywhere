@@ -1,11 +1,13 @@
 #pragma once
 
+#include <string>
+
 using namespace System::Runtime::InteropServices;
 
 namespace AskAnywhere {
 public
 ref class Utils {
- public:
+public:
   /// <summary>
   /// 获取当前用户输入光标的全局位置
   /// </summary>
@@ -17,5 +19,10 @@ ref class Utils {
                    [Out] int % Height, [Out] System::IntPtr % ActiveWindow);
 
   static bool SetActiveWindowAndCaret(System::IntPtr window, int x, int y);
+
+  static bool SendTextToCaret(System::IntPtr ptrWindow, System::String ^ text);
+
+private:
+  static void MarshalString(System::String ^ s, std::string &os);
 };
-}  // namespace AskAnywhere
+} // namespace AskAnywhere

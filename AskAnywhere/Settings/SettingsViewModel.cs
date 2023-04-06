@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,32 +13,47 @@ namespace AskAnywhere.Settings
 {
     public enum ConnectionMode
     {
-        OPENAI = 0,
+        OPENAI_DIRECT = 0,
+        OPENAI_PROXY_SERVER = 1,
         AICLOUD
+    }
+
+    public enum SettingPage
+    {
+        LANG_SETTING = 0,
+        BACKEND_SETTING,
+        PROXY_SETTING
     }
 
     public class SettingsViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public ConnectionMode ConnectionMode { get; set; }
-        public string OpenAIApiKey { get; set; }
-        public string AICloudKey { get; set; }
+        public ConnectionMode ConnectionMode { get; set; } = ConnectionMode.OPENAI_DIRECT;
+
+        public SettingPage CurrentPage { get; set; } = SettingPage.LANG_SETTING;
+
+        public ICommand ChangePageCommand { get; set; }
+
+        public string OpenAIApiKey { get; set; } = "";
+
+        public string AICloudKey { get; set; } = "";
+
+        public string OpenAIProxyServerUrl { get; set; } = "";
+
+        public string OpenAIProxyServerSecret { get; set; } = "";
+
         public ICommand ConfirmCommand { get; set; }
 
         public SettingsViewModel()
         {
-            ConnectionMode = 0;
-            OpenAIApiKey = "";
-            AICloudKey = "";
-
             if (Properties.Settings.Default.BackendType == "AskAnywhere.Services.OpenAIBackend")
-                ConnectionMode = ConnectionMode.OPENAI;
+                ConnectionMode = ConnectionMode.OPENAI_DIRECT;
 
             if (Properties.Settings.Default.BackendType == "AskAnywhere.Services.AICloudBackend")
                 ConnectionMode = ConnectionMode.AICLOUD;
 
-            if (ConnectionMode == ConnectionMode.OPENAI)
+            if (ConnectionMode == ConnectionMode.OPENAI_DIRECT)
             {
                 OpenAIApiKey = Properties.Settings.Default.BackendAuthKey;
                 AICloudKey = "";
@@ -52,14 +68,14 @@ namespace AskAnywhere.Settings
 
             command.CanExecuteFunc = () =>
             {
-                if (ConnectionMode == ConnectionMode.OPENAI && string.IsNullOrEmpty(OpenAIApiKey)) return false;
+                if (ConnectionMode == ConnectionMode.OPENAI_DIRECT && string.IsNullOrEmpty(OpenAIApiKey)) return false;
                 if (ConnectionMode == ConnectionMode.AICLOUD && string.IsNullOrEmpty(AICloudKey)) return false;
                 return true;
             };
 
             command.CommandAction = () =>
             {
-                if (ConnectionMode == ConnectionMode.OPENAI)
+                if (ConnectionMode == ConnectionMode.OPENAI_DIRECT)
                 {
                     Properties.Settings.Default.BackendAuthKey = OpenAIApiKey;
                     Properties.Settings.Default.BackendType = "AskAnywhere.Services.OpenAIBackend";
@@ -74,6 +90,11 @@ namespace AskAnywhere.Settings
             };
 
             ConfirmCommand = command;
+
+            ChangePageCommand = new RelayCommand<string>(indexString =>
+            {
+                Debug.WriteLine(indexString);
+            }, _ => true);
         }
     }
 }
