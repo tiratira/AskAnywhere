@@ -13,7 +13,7 @@
         ShowInTaskbar="False"
         Title="AskDialog"
         Height="80"
-        Width="240"
+        Width="300"
         Topmost="True">
     <Window.DataContext>
         <local:AskDialogViewModel AskMode="TRANSLATION"
@@ -62,6 +62,8 @@
                 </spinner:ucSpinnerDotCircle>
 
                 <Border Margin="4"
+                        x:Name="ModeBlock"
+                        Height="26"
                         CornerRadius="4">
                     <Border.Style>
                         <Style TargetType="Border">
@@ -153,19 +155,19 @@
                                                      Value="ASK">
 
                                             <Setter Property="Text"
-                                                    Value="提问" />
+                                                    Value="{StaticResource AskMode_Ask}" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding AskMode}"
                                                      Value="CODE">
 
                                             <Setter Property="Text"
-                                                    Value="代码" />
+                                                    Value="{StaticResource AskMode_Code}" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding AskMode}"
                                                      Value="TRANSLATION">
 
                                             <Setter Property="Text"
-                                                    Value="翻译" />
+                                                    Value="{StaticResource AskMode_Translation}" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -193,7 +195,7 @@
                                     <Setter Property="Foreground"
                                             Value="#555" />
                                     <Setter Property="Text"
-                                            Value="完成" />
+                                            Value="{DynamicResource Ask_Done}" />
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding CurrentState}"
                                              Value="OUTPUT">
@@ -202,7 +204,7 @@
                                     <Setter Property="Foreground"
                                             Value="#555" />
                                     <Setter Property="Text"
-                                            Value="思考中..." />
+                                            Value="{DynamicResource Ask_Thinking}" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -210,6 +212,7 @@
                 </TextBlock>
 
                 <Border VerticalAlignment="Center"
+                        x:Name="TargetBlock"
                         Margin="0 0 4 0"
                         Height="26"
                         Background="#ccc"
@@ -231,7 +234,6 @@
                         </Style>
                     </Border.Style>
                     <TextBlock Text="{Binding AskTarget}"
-                               x:Name="TargetBlock"
                                Foreground="#555"
                                Margin="4 0"
                                VerticalAlignment="Center"
@@ -270,7 +272,8 @@
                          FontSize="14"
                          VerticalAlignment="Center"
                          TextWrapping="Wrap"
-                         MaxWidth="240"
+                         MaxWidth="320"
+                         IsVisibleChanged="InputBox_IsVisibleChanged"
                          TextChanged="InputBox_TextChanged">
                     <TextBox.Style>
                         <Style TargetType="TextBox">
@@ -298,6 +301,12 @@
                                     CommandParameter="{Binding ElementName=InputBox}" />
                     </TextBox.InputBindings>
                 </TextBox>
+                <TextBlock x:Name="HintBox"
+                           Text="{DynamicResource AskMode_Hint}"
+                           Foreground="#aaa"
+                           FontSize="14"
+                           VerticalAlignment="Center">
+                </TextBlock>
             </StackPanel>
         </Border>
     </Grid>

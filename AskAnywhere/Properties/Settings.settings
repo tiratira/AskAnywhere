@@ -17,5 +17,8 @@
     <Setting Name="ProxyPort" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">1080</Value>
     </Setting>
+    <Setting Name="Language" Type="System.String" Scope="User">
+      <Value Profile="(Default)">en-us</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -54,14 +54,34 @@ namespace AskAnywhere
 
         private void InputBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (InputBox.ActualWidth + TargetBlock.ActualWidth >= 110)
+            if (InputBox.Text.Length > 0)
             {
-                Width = InputBox.ActualWidth + TargetBlock.ActualWidth + 140;
+                HintBox.Visibility = Visibility.Collapsed;
+            }
+            else if (InputBox.Visibility == Visibility.Visible)
+            {
+                HintBox.Visibility = Visibility.Visible;
             }
 
-            if (InputBox.LineCount >= 1)
+            if (InputBox.LineCount > 1)
             {
                 Height = InputBox.LineCount * 16 + 64;
+                Width = InputBox.MaxWidth + TargetBlock.ActualWidth + ModeBlock.ActualWidth + 64;
+                return;
+            }
+
+            Height = 80;
+            var width = InputBox.ActualWidth + TargetBlock.ActualWidth + ModeBlock.ActualWidth + 64;
+            width = width >= 300 ? width : 300;
+
+            Width = width;
+        }
+
+        private void InputBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (InputBox.Visibility == Visibility.Collapsed)
+            {
+                HintBox.Visibility = Visibility.Collapsed;
             }
         }
     }

@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Windows.Input;
 using System.Reflection;
 using System.IO;
-using System.Windows.Forms;
 using AskAnywhere.Services;
 using AskAnywhere.Commands;
 using AskAnywhere.Properties;
@@ -14,14 +13,14 @@ using CommunityToolkit.Mvvm.Input;
 using H.NotifyIcon;
 using NHotkey.Wpf;
 using NHotkey;
-
+using AskAnywhere.i18n;
 
 namespace AskAnywhere
 {
     public class AskApp
     {
         private readonly System.Windows.Application _hostApp;
-        private TaskbarIcon? _notifyIcon;
+        private static TaskbarIcon? _notifyIcon;
         private AskCommands? _commands;
         private AskDialogViewModel? _vm;
 
@@ -43,6 +42,14 @@ namespace AskAnywhere
 
         public void Startup()
         {
+            string language = Properties.Settings.Default.Language;
+            Debug.WriteLine($"ERROR: loading language presets for {language}");
+
+            // set up language
+            LanguageSwitcher.Change(language);
+
+
+
             // check if the backend is properly set, if not then spawn a settings wizzard dialog.
             if (string.IsNullOrEmpty(Properties.Settings.Default.BackendType))
             {
@@ -53,9 +60,7 @@ namespace AskAnywhere
                 if (string.IsNullOrEmpty(Properties.Settings.Default.BackendType)) _hostApp.Shutdown();
             }
 
-            // create taskicon for app
-            _notifyIcon = (TaskbarIcon)_hostApp.FindResource("NotifyIcon");
-            _notifyIcon.ForceCreate(true);
+            SetupTaskIcon();
 
             // read all commands from database file commands.json
             _commands = JsonConvert.DeserializeObject<AskCommands>(Resource.CommandList);
@@ -72,6 +77,28 @@ namespace AskAnywhere
         public void ShutDown()
         {
             DisableKeyboardHook();
+            DisposeTaskIcon();
+        }
+
+        public static void SetupTaskIcon()
+        {
+            var notifyIconDic = new ResourceDictionary();
+            notifyIconDic.Source = new Uri(@"Notification/NotifyIconResources.xaml", UriKind.Relative);
+            Application.Current.Resources.MergedDictionaries.Add(notifyIconDic);
+
+            // create taskicon for app
+            _notifyIcon = (TaskbarIcon)Application.Current.FindResource("NotifyIcon");
+            _notifyIcon.ForceCreate(true);
+        }
+
+        public static void RefreshTaskIcon()
+        {
+            _notifyIcon.UpdateDefaultStyle();
+            _notifyIcon.DataContext = new NotifyIconViewModel();
+        }
+
+        public static void DisposeTaskIcon()
+        {
             _notifyIcon?.Dispose();
         }
 
@@ -164,6 +191,7 @@ namespace AskAnywhere
                 {
                     Debug.WriteLine($"mode:{_vm.AskMode}, target:{_vm.AskTarget}, prompt:{_vm.Prompt}");
                     _vm.CurrentState = InputState.OUTPUT;
+                    _vm.Prompt = "";
                     _dialog?.ChangeSize(140, 80);
                     _backendService.Ask(_vm.AskMode, _vm.AskTarget, _vm.Prompt);
 
@@ -218,7 +246,7 @@ namespace AskAnywhere
         /// we copy text parts into copyboard, and simulate a 'ctrl+v' key input on target caret place.
         /// </summary>
         /// <param name="data"></param>
-        public void SendText(string data) 
+        public void SendText(string data)
         {
             if (string.IsNullOrEmpty(data))
             {

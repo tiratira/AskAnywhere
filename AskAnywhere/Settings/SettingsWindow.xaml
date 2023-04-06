@@ -9,7 +9,7 @@
            xmlns:Settings="clr-namespace:AskAnywhere.Settings"
            x:Class="AskAnywhere.SettingsWindow"
            mc:Ignorable="d"
-           Title="AskAnywhere 选项设置"
+           Title="{DynamicResource Settings_Title}"
            ResizeMode="NoResize"
            WindowStartupLocation="CenterScreen"
            Icon="/AskAnywhere;component/Resources/Icons/ask_anywhere_icon.ico"
@@ -48,11 +48,11 @@
                             VerticalAlignment="Center">
                 <RadioButton IsChecked="{Binding CurrentPage,Converter={StaticResource SettingPageToIntConverter}, ConverterParameter=0}"
                              hc:IconElement.Geometry="{StaticResource LanguageIcon}"
-                             Content="语言设置" />
-                <RadioButton Content="服务设置"
+                             Content="{DynamicResource Settings_LanguageTab}" />
+                <RadioButton Content="{DynamicResource Settings_BackendTab}"
                              IsChecked="{Binding CurrentPage,Converter={StaticResource SettingPageToIntConverter}, ConverterParameter=1}"
                              hc:IconElement.Geometry="{StaticResource ServerIcon}" />
-                <RadioButton Content="代理设置"
+                <RadioButton Content="{DynamicResource Settings_ProxyTab}"
                              IsChecked="{Binding CurrentPage,Converter={StaticResource SettingPageToIntConverter}, ConverterParameter=2}"
                              hc:IconElement.Geometry="{StaticResource ProxyIcon2}" />
             </hc:ButtonGroup>
@@ -95,7 +95,7 @@
         </Frame>
 
         <Border Grid.Row="3">
-            <Button Content="确认"
+            <Button Content="{DynamicResource Settings_ConfirmBtn}"
                     Click="Button_Click"
                     Command="{Binding ConfirmCommand}"
                     Style="{StaticResource ButtonPrimary}"

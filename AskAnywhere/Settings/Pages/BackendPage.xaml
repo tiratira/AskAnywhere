@@ -30,10 +30,8 @@
     <Border>
         <StackPanel Margin="8"
                     Orientation="Vertical">
-            <TextBlock Margin="8"
-                       TextWrapping="Wrap">
-                    请选择Ask Anywhere的AI后端提供平台。请注意，选择一项平台后您需要填写对应的API Key才能正常使用Ask Anywhere。
-            </TextBlock>
+            <TextBlock Margin="8" Text="{DynamicResource Settings_Backend_Intro}" FontSize="11"
+                       TextWrapping="Wrap" />
             <Border CornerRadius="6"
                     x:Name="SelectionBorder"
                     BorderThickness="1"
@@ -55,8 +53,8 @@
                                  IsChecked="{Binding ConnectionMode,Converter={StaticResource ConnectionModeToIntConverter}, ConverterParameter=0}"
                                  GroupName="moderp"
                                  HorizontalAlignment="Left"
-                                 Content="OpenAI 直连" />
-                    <hc:TextBox hc:InfoElement.Placeholder="请输入OpenAI API Key"
+                                 Content="{DynamicResource Settings_Backend_OpenAIDirect}" />
+                    <hc:TextBox hc:InfoElement.Placeholder="{DynamicResource Settings_Backend_OpenAIKey}"
                                 IsEnabled="{Binding ConnectionMode,Converter={StaticResource ConnectionModeToIntConverter}, ConverterParameter=0}"
                                 Text="{Binding OpenAIApiKey,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 Margin="32 0 8 8"></hc:TextBox>
@@ -84,7 +82,7 @@
                                  HorizontalAlignment="Left">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock FontWeight="Bold"
-                                       Text="OpenAI 中转服务器" />
+                                       Text="{DynamicResource Settings_Backend_OpenAIProxy}" />
                             <TextBlock FontWeight="Bold"
                                        Margin="4 0 0 0">
                                     <Hyperlink NavigateUri="https://www.baidu.com">ChatGPTServer</Hyperlink>
@@ -92,11 +90,11 @@
                         </StackPanel>
                     </RadioButton>
 
-                    <hc:TextBox hc:InfoElement.Placeholder="请输入代理服务器地址"
+                    <hc:TextBox hc:InfoElement.Placeholder="{DynamicResource Settings_Backend_OpenAIProxyUrl}"
                                 IsEnabled="{Binding ConnectionMode,Converter={StaticResource ConnectionModeToIntConverter}, ConverterParameter=1}"
                                 Text="{Binding OpenAIProxyServerUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 Margin="32 0 8 8"></hc:TextBox>
-                    <hc:TextBox hc:InfoElement.Placeholder="请输入验证密码"
+                    <hc:TextBox hc:InfoElement.Placeholder="{DynamicResource Settings_Backend_OpenAIProxySecret}"
                                 IsEnabled="{Binding ConnectionMode,Converter={StaticResource ConnectionModeToIntConverter}, ConverterParameter=1}"
                                 Text="{Binding OpenAIProxyServerSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 Margin="32 0 8 8"></hc:TextBox>
@@ -123,8 +121,8 @@
                                  IsChecked="{Binding ConnectionMode,Converter={StaticResource ConnectionModeToIntConverter}, ConverterParameter=2}"
                                  GroupName="moderp"
                                  HorizontalAlignment="Left"
-                                 Content="AICloud (AI一点通)" />
-                    <hc:TextBox hc:InfoElement.Placeholder="请输入AICloud Key"
+                                 Content="{DynamicResource Settings_Backend_AICloud}" />
+                    <hc:TextBox hc:InfoElement.Placeholder="{DynamicResource Settings_Backend_AICloudKey    }"
                                 IsEnabled="{Binding ConnectionMode,Converter={StaticResource ConnectionModeToIntConverter}, ConverterParameter=2}"
                                 Text="{Binding AICloudKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 Margin="32 0 8 8"></hc:TextBox>

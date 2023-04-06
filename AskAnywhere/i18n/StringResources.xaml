@@ -1,0 +1,42 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    <!--task icon menu-->
+    <system:String x:Key="NotifySettings">Settings</system:String>
+    <system:String x:Key="NotifyExit">Exit</system:String>
+
+    <!--ask dialog bar-->
+    <system:String x:Key="AskMode_Ask">ASK</system:String>
+    <system:String x:Key="AskMode_Translation">LANG</system:String>
+    <system:String x:Key="AskMode_Code">CODE</system:String>
+    <system:String x:Key="AskMode_Hint">ask anything...</system:String>
+    <system:String x:Key="Ask_Thinking">Thinking</system:String>
+    <system:String x:Key="Ask_Done">Done</system:String>
+    <system:String x:Key="Ask_Error">Error</system:String>
+
+    <!--settings dialog-->
+    <system:String x:Key="Settings_Title">Ask Anywhere Settings</system:String>
+    <system:String x:Key="Settings_LanguageTab">Lanuages</system:String>
+    <system:String x:Key="Settings_BackendTab">Backends</system:String>
+    <system:String x:Key="Settings_ProxyTab">Proxy</system:String>
+    <system:String x:Key="Settings_ConfirmBtn">CONFIRM</system:String>
+
+    <!-- backends page-->
+    <system:String x:Key="Settings_Backend_Intro">Please select the AI backend platform provided by Ask Anywhere. Please note that after selecting a platform, you will need to fill in the corresponding API Key to use Ask Anywhere normally.</system:String>
+    <system:String x:Key="Settings_Backend_OpenAIDirect">OpenAI Direct</system:String>
+    <system:String x:Key="Settings_Backend_OpenAIKey">Please input your OpenAI API key</system:String>
+
+    <system:String x:Key="Settings_Backend_OpenAIProxy">OpenAI Proxy Server</system:String>
+    <system:String x:Key="Settings_Backend_OpenAIProxyUrl">Please input OpenAI proxy server url</system:String>
+    <system:String x:Key="Settings_Backend_OpenAIProxySecret">Please input server secret key</system:String>
+
+    <system:String x:Key="Settings_Backend_AICloud">AICloud Service</system:String>
+    <system:String x:Key="Settings_Backend_AICloudKey">Please input AICloud API key</system:String>
+
+    <!-- proxy page-->
+    <system:String x:Key="Settings_Proxy_Checkbox">Enable HTTP proxy</system:String>
+    <system:String x:Key="Settings_Proxy_Url">Please input proxy server address</system:String>
+    <system:String x:Key="Settings_Proxy_Port">Please input proxy server port</system:String>
+
+
+</ResourceDictionary>

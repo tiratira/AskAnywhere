@@ -6,7 +6,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Notification/NotifyIconResources.xaml" />
+                <ResourceDictionary Source="i18n/StringResources.xaml" />
                 <ResourceDictionary Source="Svgs.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

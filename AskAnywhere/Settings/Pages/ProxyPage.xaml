@@ -25,14 +25,14 @@
     </d:Page.DataContext>
     <Border>
         <StackPanel Margin="8">
-            <CheckBox Content="启用HTTP代理"
+            <CheckBox Content="{DynamicResource Settings_Proxy_Checkbox}" FontWeight="Bold"
                       Margin="8"
                       IsChecked="{Binding UseProxy,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
-            <hc:TextBox hc:InfoElement.Placeholder="请输入代理服务器地址"
+            <hc:TextBox hc:InfoElement.Placeholder="{DynamicResource Settings_Proxy_Url}"
                         IsEnabled="{Binding UseProxy}"
                         Text="{Binding OpenAIProxyServerUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         Margin="32 0 8 8"></hc:TextBox>
-            <hc:TextBox hc:InfoElement.Placeholder="请输入代理服务器端口"
+            <hc:TextBox hc:InfoElement.Placeholder="{DynamicResource Settings_Proxy_Port}"
                         IsEnabled="{Binding UseProxy}"
                         Text="{Binding OpenAIProxyServerSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         Margin="32 0 8 8"></hc:TextBox>
