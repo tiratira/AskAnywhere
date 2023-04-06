@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,6 +28,22 @@ namespace AskAnywhere
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void MainFrame_LoadCompleted(object sender, System.Windows.Navigation.NavigationEventArgs e)
+        {
+            SetFrameDataContext();
+        }
+
+        private void MainFrame_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            SetFrameDataContext();
+        }
+
+        private void SetFrameDataContext()
+        {
+            if (MainFrame.Content == null) return;
+            (MainFrame.Content as Page).DataContext = DataContext;
         }
     }
 }

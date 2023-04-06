@@ -4,7 +4,11 @@
 #include "Utils.h"
 #include "oleacc.h"
 
+#include <codecvt>
+#include <locale>
+
 #pragma comment(lib, "Oleacc.lib")
+#pragma comment(lib, "Imm32.lib")
 
 using namespace System::Diagnostics;
 
@@ -24,10 +28,31 @@ System::Boolean Utils::GetCaretPosition(int % X, int % Y, int % Width,
 
   GetGUIThreadInfo(tid, &info);
 
+  // IAccessible *object = nullptr;
+
+  // if (info.hwndCaret == 0) {
+  //   Debug::WriteLine("ERROR: no caret found!");
+  //   return false;
+  // }
+
+  // POINT caret_pos{};
+
+  // caret_pos.x = info.rcCaret.left;
+  // caret_pos.y = info.rcCaret.bottom;
+
+  // ClientToScreen(info.hwndCaret, &caret_pos);
+
+  // X = caret_pos.x;
+  // Y = caret_pos.y;
+
+  // ActiveWindow = System::IntPtr(hwnd);
+
+  // return true;
+
   IAccessible *object = nullptr;
 
-  // While in word application, caret moves through animations. In this case, caret
-  // can not retrieved using this api?
+  // While in word application, caret moves through animations. In this case,
+  // caret can not retrieved using this api?
   if (!SUCCEEDED(AccessibleObjectFromWindow(
           info.hwndFocus, OBJID_CARET, IID_IAccessible, (void **)&object))) {
     return false;
@@ -65,6 +90,27 @@ bool Utils::SetActiveWindowAndCaret(System::IntPtr window, int x, int y) {
   //   Debug::WriteLine("ERROR: can not set target caret!");
   //   return false;
   // }
+
+  return true;
+}
+
+bool Utils::SendTextToCaret(System::IntPtr ptrWindow, System::String ^ text) {
+
+  auto *hwnd = (HWND)ptrWindow.ToPointer();
+  DWORD pid;
+  DWORD tid;
+
+  GUITHREADINFO info{};
+  info.cbSize = sizeof(GUITHREADINFO);
+
+  tid = GetWindowThreadProcessId(hwnd, &pid);
+
+  GetGUIThreadInfo(tid, &info);
+
+  for (size_t i = 0; i < text->Length; i++) {
+    auto part = text[i];
+    SendMessage(info.hwndFocus, WM_IME_CHAR, (WPARAM)part, 0);
+  }
 
   return true;
 }

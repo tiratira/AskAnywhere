@@ -9,7 +9,7 @@ using System.Windows.Data;
 
 namespace AskAnywhere.Common
 {
-    public class EnumToValueConverter : IValueConverter
+    public class EnumToValueConverter<T> : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -20,8 +20,13 @@ namespace AskAnywhere.Common
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null || parameter == null) { return null; }
-            if ((bool)value) { return (ConnectionMode)int.Parse(parameter.ToString()); }
+            if ((bool)value) { return (T)(object)int.Parse(parameter.ToString()); }
             return null;
         }
     }
+
+
+    public class ConnectionModeToIntConverter : EnumToValueConverter<ConnectionMode> { }
+
+    public class SettingPageToIntConverter : EnumToValueConverter<SettingPage> { }
 }
