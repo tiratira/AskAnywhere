@@ -17,7 +17,7 @@
            Width="320">
     <hc:Window.Resources>
         <ResourceDictionary>
-            <common:EnumToValueConverter x:Key="EnumToValueConverter" />
+            <common:SettingPageToIntConverter x:Key="SettingPageToIntConverter" />
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml" />
@@ -45,24 +45,26 @@
         <Border Grid.Row="1">
             <hc:ButtonGroup Margin="8"
                             VerticalAlignment="Center">
-                <RadioButton IsChecked="{Binding CurrentPage,Converter={StaticResource EnumToValueConverter}, ConverterParameter=0}"
+                <RadioButton IsChecked="{Binding CurrentPage,Converter={StaticResource SettingPageToIntConverter}, ConverterParameter=0}"
                              hc:IconElement.Geometry="{StaticResource LanguageIcon}"
                              Command="{Binding ChangePageCommand}"
                              CommandParameter="0"
                              Content="语言设置" />
                 <RadioButton Content="服务设置"
-                             IsChecked="{Binding CurrentPage,Converter={StaticResource EnumToValueConverter}, ConverterParameter=1}"
+                             IsChecked="{Binding CurrentPage,Converter={StaticResource SettingPageToIntConverter}, ConverterParameter=1}"
                              hc:IconElement.Geometry="{StaticResource ServerIcon}"
                              Command="{Binding ChangePageCommand}"
                              CommandParameter="1" />
                 <RadioButton Content="代理设置"
-                             IsChecked="{Binding CurrentPage,Converter={StaticResource EnumToValueConverter}, ConverterParameter=2}"
+                             IsChecked="{Binding CurrentPage,Converter={StaticResource SettingPageToIntConverter}, ConverterParameter=2}"
                              hc:IconElement.Geometry="{StaticResource ProxyIcon2}"
                              Command="{Binding ChangePageCommand}"
                              CommandParameter="2" />
             </hc:ButtonGroup>
         </Border>
-        <Frame Grid.Row="2"></Frame>
+        <Frame Grid.Row="2"
+               x:Name="MainContent"
+               Source="{Binding PageUri, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></Frame>
 
         <Border Grid.Row="3">
             <Button Content="确认"

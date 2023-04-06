@@ -21,8 +21,5 @@ public:
   static bool SetActiveWindowAndCaret(System::IntPtr window, int x, int y);
 
   static bool SendTextToCaret(System::IntPtr ptrWindow, System::String ^ text);
-
-private:
-  static void MarshalString(System::String ^ s, std::string &os);
 };
 } // namespace AskAnywhere

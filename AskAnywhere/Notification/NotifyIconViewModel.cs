@@ -19,7 +19,7 @@ namespace AskAnywhere
                 return new DelegateCommand
                 {
                     CanExecuteFunc = () => _settingsWindow == null || _settingsWindow.IsActive == false,
-                    CommandAction = () =>
+                    CommandAction = (_) =>
                     {
                         _settingsWindow = new SettingsWindow();
                         var vm = new SettingsViewModel();
@@ -39,7 +39,7 @@ namespace AskAnywhere
             {
                 return new DelegateCommand
                 {
-                    CommandAction = () => Application.Current.MainWindow.Close(),
+                    CommandAction = (_) => Application.Current.MainWindow.Close(),
                     CanExecuteFunc = () => Application.Current.MainWindow != null
                 };
             }
@@ -53,7 +53,7 @@ namespace AskAnywhere
         {
             get
             {
-                return new DelegateCommand { CommandAction = () => Application.Current.Shutdown() };
+                return new DelegateCommand { CommandAction = (_) => Application.Current.Shutdown() };
             }
         }
     }

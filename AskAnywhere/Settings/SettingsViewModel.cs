@@ -1,4 +1,5 @@
 ﻿using AskAnywhere.Common;
+using AskAnywhere.Settings.Pages;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace AskAnywhere.Settings
@@ -25,13 +27,24 @@ namespace AskAnywhere.Settings
         PROXY_SETTING
     }
 
+
     public class SettingsViewModel : INotifyPropertyChanged
     {
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public ConnectionMode ConnectionMode { get; set; } = ConnectionMode.OPENAI_DIRECT;
 
-        public SettingPage CurrentPage { get; set; } = SettingPage.LANG_SETTING;
+        public SettingPage CurrentPage { get; set; } = SettingPage.BACKEND_SETTING;
+
+        public string PageUri { get; set; }
+
+        private static Dictionary<SettingPage, string> PAGE_MAP = new Dictionary<SettingPage, string>()
+        {
+            {SettingPage.LANG_SETTING, "pack://application:,,,/AskAnywhere;component/Settings/Pages/LanguagePage.xaml" },
+            {SettingPage.BACKEND_SETTING, "pack://application:,,,/AskAnywhere;component/Settings/Pages/BackendPage.xaml" },
+            {SettingPage.PROXY_SETTING, "pack://application:,,,/AskAnywhere;component/Settings/Pages/ProxyPage.xaml" }
+        };
 
         public ICommand ChangePageCommand { get; set; }
 
@@ -47,6 +60,8 @@ namespace AskAnywhere.Settings
 
         public SettingsViewModel()
         {
+            PageUri = PAGE_MAP[CurrentPage];
+
             if (Properties.Settings.Default.BackendType == "AskAnywhere.Services.OpenAIBackend")
                 ConnectionMode = ConnectionMode.OPENAI_DIRECT;
 
@@ -73,7 +88,7 @@ namespace AskAnywhere.Settings
                 return true;
             };
 
-            command.CommandAction = () =>
+            command.CommandAction = (_) =>
             {
                 if (ConnectionMode == ConnectionMode.OPENAI_DIRECT)
                 {
@@ -91,10 +106,22 @@ namespace AskAnywhere.Settings
 
             ConfirmCommand = command;
 
-            ChangePageCommand = new RelayCommand<string>(indexString =>
+            var changePageCommand = new DelegateCommand();
+            changePageCommand.CommandAction = value =>
             {
-                Debug.WriteLine(indexString);
-            }, _ => true);
+                var indexString = (string)value;
+                Debug.WriteLine($"changing to page: {indexString}");
+                var page = (SettingPage)int.Parse(indexString);
+                if (CurrentPage != page)
+                {
+                    PageUri = PAGE_MAP[page];
+                    CurrentPage = page;
+                }
+            };
+
+            changePageCommand.CanExecuteFunc = () => true;
+
+            ChangePageCommand = changePageCommand;
         }
     }
 }

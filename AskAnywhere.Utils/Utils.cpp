@@ -94,14 +94,6 @@ bool Utils::SetActiveWindowAndCaret(System::IntPtr window, int x, int y) {
   return true;
 }
 
-void Utils::MarshalString(System::String ^ s, std::string &os) {
-  using namespace System::Runtime::InteropServices;
-  const char *chars =
-      (const char *)(Marshal::StringToHGlobalAnsi(s)).ToPointer();
-  os = chars;
-  Marshal::FreeHGlobal(System::IntPtr((void *)chars));
-}
-
 bool Utils::SendTextToCaret(System::IntPtr ptrWindow, System::String ^ text) {
 
   auto *hwnd = (HWND)ptrWindow.ToPointer();
@@ -115,50 +107,10 @@ bool Utils::SendTextToCaret(System::IntPtr ptrWindow, System::String ^ text) {
 
   GetGUIThreadInfo(tid, &info);
 
-  std::string raw_text;
-  MarshalString(text, raw_text);
-
-  wchar_t wdata[1024];
-
-  auto size = MultiByteToWideChar(CP_OEMCP, MB_PRECOMPOSED, raw_text.data(),
-                                  raw_text.size(), wdata, 0);
-
-  // auto wide_string = std::wstring(raw_text.begin(), raw_text.end());
-
-  // ImmSetCompositionString(0, SCS_SETSTR, pstr, raw_text.size() + 1,
-  //                         raw_text.data(), raw_text.size() + 1);
-
-  for (size_t i = 0; i < size; i++) {
-    SendMessage(info.hwndFocus, WM_IME_CHAR, wdata[i], 0);
+  for (size_t i = 0; i < text->Length; i++) {
+    auto part = text[i];
+    SendMessage(info.hwndFocus, WM_IME_CHAR, (WPARAM)part, 0);
   }
-
-  // SendMessage(info.hwndFocus, WM_IME_COMPOSITION, (WPARAM)pstr,
-  // CS_NOMOVECARET);
-
-  // auto handle = GlobalAlloc(0x0002, raw_text.size() + 1);
-  // if (!handle)
-  //   return false;
-
-  // memcpy(GlobalLock(handle), raw_text.data(), raw_text.size() + 1);
-
-  // GlobalUnlock(handle);
-
-  // if (!OpenClipboard(0)) {
-  //   return false;
-  // }
-
-  // EmptyClipboard();
-  // SetClipboardData(CF_TEXT, handle);
-  // if (!CloseClipboard()) {
-  //   return false;
-  // }
-
-  // handle = NULL;
-
-  // SendMessage(info.hwndFocus, WM_PASTE, 0, 0);
-
-  // if (handle)
-  //   GlobalFree(handle);
 
   return true;
 }
