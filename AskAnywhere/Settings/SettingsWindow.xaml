@@ -5,6 +5,7 @@
            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
            xmlns:local="clr-namespace:AskAnywhere"
            xmlns:common="clr-namespace:AskAnywhere.Common"
+           xmlns:page="clr-namespace:AskAnywhere.Settings.Pages"
            xmlns:Settings="clr-namespace:AskAnywhere.Settings"
            x:Class="AskAnywhere.SettingsWindow"
            mc:Ignorable="d"
@@ -26,13 +27,13 @@
     </hc:Window.Resources>
 
     <hc:Window.DataContext>
-        <Settings:SettingsViewModel ConnectionMode="OPENAI_DIRECT" />
+        <Settings:SettingsViewModel />
     </hc:Window.DataContext>
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="96" />
-            <RowDefinition Height="48" />
+            <RowDefinition Height="40" />
             <RowDefinition Height="1*" />
             <RowDefinition Height="48" />
         </Grid.RowDefinitions>
@@ -43,35 +44,62 @@
                    Height="96" />
         </StackPanel>
         <Border Grid.Row="1">
-            <hc:ButtonGroup Margin="8"
+            <hc:ButtonGroup Margin="8 8 8 0"
                             VerticalAlignment="Center">
                 <RadioButton IsChecked="{Binding CurrentPage,Converter={StaticResource SettingPageToIntConverter}, ConverterParameter=0}"
                              hc:IconElement.Geometry="{StaticResource LanguageIcon}"
-                             Command="{Binding ChangePageCommand}"
-                             CommandParameter="0"
                              Content="语言设置" />
                 <RadioButton Content="服务设置"
                              IsChecked="{Binding CurrentPage,Converter={StaticResource SettingPageToIntConverter}, ConverterParameter=1}"
-                             hc:IconElement.Geometry="{StaticResource ServerIcon}"
-                             Command="{Binding ChangePageCommand}"
-                             CommandParameter="1" />
+                             hc:IconElement.Geometry="{StaticResource ServerIcon}" />
                 <RadioButton Content="代理设置"
                              IsChecked="{Binding CurrentPage,Converter={StaticResource SettingPageToIntConverter}, ConverterParameter=2}"
-                             hc:IconElement.Geometry="{StaticResource ProxyIcon2}"
-                             Command="{Binding ChangePageCommand}"
-                             CommandParameter="2" />
+                             hc:IconElement.Geometry="{StaticResource ProxyIcon2}" />
             </hc:ButtonGroup>
         </Border>
         <Frame Grid.Row="2"
-               x:Name="MainContent"
-               Source="{Binding PageUri, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></Frame>
+               x:Name="MainFrame"
+               LoadCompleted="MainFrame_LoadCompleted"
+               DataContextChanged="MainFrame_DataContextChanged"
+               NavigationUIVisibility="Hidden">
+            <Frame.Style>
+                <Style TargetType="Frame">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding CurrentPage}"
+                                     Value="LANG_SETTING">
+                            <Setter Property="Content">
+                                <Setter.Value>
+                                    <page:LanguagePage />
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPage}"
+                                     Value="BACKEND_SETTING">
+                            <Setter Property="Content">
+                                <Setter.Value>
+                                    <page:BackendPage />
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPage}"
+                                     Value="PROXY_SETTING">
+                            <Setter Property="Content">
+                                <Setter.Value>
+                                    <page:ProxyPage />
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Frame.Style>
+        </Frame>
 
         <Border Grid.Row="3">
             <Button Content="确认"
                     Click="Button_Click"
                     Command="{Binding ConfirmCommand}"
                     Style="{StaticResource ButtonPrimary}"
-                    Width="280"></Button>
+                    Width="300"></Button>
         </Border>
     </Grid>
 </hc:Window>

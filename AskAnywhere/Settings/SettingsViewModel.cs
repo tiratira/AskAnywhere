@@ -13,6 +13,12 @@ using System.Windows.Input;
 
 namespace AskAnywhere.Settings
 {
+    public enum Language
+    {
+        CHINESE = 0,
+        ENGLISH
+    }
+
     public enum ConnectionMode
     {
         OPENAI_DIRECT = 0,
@@ -33,20 +39,18 @@ namespace AskAnywhere.Settings
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
+        #region Language settings
+
+        public Language DisplayLanguage { get; set; } = Language.CHINESE;
+
+        #endregion
+
+
+        #region Backend settings
+
         public ConnectionMode ConnectionMode { get; set; } = ConnectionMode.OPENAI_DIRECT;
 
         public SettingPage CurrentPage { get; set; } = SettingPage.BACKEND_SETTING;
-
-        public string PageUri { get; set; }
-
-        private static Dictionary<SettingPage, string> PAGE_MAP = new Dictionary<SettingPage, string>()
-        {
-            {SettingPage.LANG_SETTING, "pack://application:,,,/AskAnywhere;component/Settings/Pages/LanguagePage.xaml" },
-            {SettingPage.BACKEND_SETTING, "pack://application:,,,/AskAnywhere;component/Settings/Pages/BackendPage.xaml" },
-            {SettingPage.PROXY_SETTING, "pack://application:,,,/AskAnywhere;component/Settings/Pages/ProxyPage.xaml" }
-        };
-
-        public ICommand ChangePageCommand { get; set; }
 
         public string OpenAIApiKey { get; set; } = "";
 
@@ -56,17 +60,38 @@ namespace AskAnywhere.Settings
 
         public string OpenAIProxyServerSecret { get; set; } = "";
 
+        #endregion
+
+
+        #region Proxy settings
+
+        public bool UseProxy { get; set; } = false;
+
+        public string ProxyAddress { get; set; } = "";
+
+        public int ProxyPort { get; set; } = 8080;
+
+        #endregion
+
         public ICommand ConfirmCommand { get; set; }
+
 
         public SettingsViewModel()
         {
-            PageUri = PAGE_MAP[CurrentPage];
+            Debug.WriteLine(Properties.Settings.Default.BackendType);
+
+            UseProxy = Properties.Settings.Default.UseProxy;
+            ProxyAddress = Properties.Settings.Default.ProxyAddress;
+            ProxyPort = Properties.Settings.Default.ProxyPort;
 
             if (Properties.Settings.Default.BackendType == "AskAnywhere.Services.OpenAIBackend")
                 ConnectionMode = ConnectionMode.OPENAI_DIRECT;
 
             if (Properties.Settings.Default.BackendType == "AskAnywhere.Services.AICloudBackend")
                 ConnectionMode = ConnectionMode.AICLOUD;
+
+            if (Properties.Settings.Default.BackendType == "AskAnywhere.Services.CustomProxyServer")
+                ConnectionMode = ConnectionMode.OPENAI_PROXY_SERVER;
 
             if (ConnectionMode == ConnectionMode.OPENAI_DIRECT)
             {
@@ -101,27 +126,14 @@ namespace AskAnywhere.Settings
                     Properties.Settings.Default.BackendType = "AskAnywhere.Services.AICloudBackend";
                 }
 
+                Properties.Settings.Default.UseProxy = UseProxy;
+                Properties.Settings.Default.ProxyAddress = ProxyAddress;
+                Properties.Settings.Default.ProxyPort = ProxyPort;
+
                 Properties.Settings.Default.Save();
             };
 
             ConfirmCommand = command;
-
-            var changePageCommand = new DelegateCommand();
-            changePageCommand.CommandAction = value =>
-            {
-                var indexString = (string)value;
-                Debug.WriteLine($"changing to page: {indexString}");
-                var page = (SettingPage)int.Parse(indexString);
-                if (CurrentPage != page)
-                {
-                    PageUri = PAGE_MAP[page];
-                    CurrentPage = page;
-                }
-            };
-
-            changePageCommand.CanExecuteFunc = () => true;
-
-            ChangePageCommand = changePageCommand;
         }
     }
 }

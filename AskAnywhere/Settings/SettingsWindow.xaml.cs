@@ -29,5 +29,21 @@ namespace AskAnywhere
         {
             Close();
         }
+
+        private void MainFrame_LoadCompleted(object sender, System.Windows.Navigation.NavigationEventArgs e)
+        {
+            SetFrameDataContext();
+        }
+
+        private void MainFrame_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            SetFrameDataContext();
+        }
+
+        private void SetFrameDataContext()
+        {
+            if (MainFrame.Content == null) return;
+            (MainFrame.Content as Page).DataContext = DataContext;
+        }
     }
 }

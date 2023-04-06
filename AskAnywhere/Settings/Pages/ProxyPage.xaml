@@ -1,14 +1,41 @@
 ﻿<Page x:Class="AskAnywhere.Settings.Pages.ProxyPage"
+      xmlns:hc="https://handyorg.github.io/handycontrol"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:Settings="clr-namespace:AskAnywhere.Settings"
       xmlns:local="clr-namespace:AskAnywhere.Settings.Pages"
-      mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
+      mc:Ignorable="d"
+      d:DesignHeight="450"
+      d:DesignWidth="800"
+      Background="White"
       Title="ProxyPage">
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
 
-    <Grid>
-        
-    </Grid>
+    <d:Page.DataContext>
+        <Settings:SettingsViewModel />
+    </d:Page.DataContext>
+    <Border>
+        <StackPanel Margin="8">
+            <CheckBox Content="启用HTTP代理"
+                      Margin="8"
+                      IsChecked="{Binding UseProxy,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
+            <hc:TextBox hc:InfoElement.Placeholder="请输入代理服务器地址"
+                        IsEnabled="{Binding UseProxy}"
+                        Text="{Binding OpenAIProxyServerUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Margin="32 0 8 8"></hc:TextBox>
+            <hc:TextBox hc:InfoElement.Placeholder="请输入代理服务器端口"
+                        IsEnabled="{Binding UseProxy}"
+                        Text="{Binding OpenAIProxyServerSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Margin="32 0 8 8"></hc:TextBox>
+        </StackPanel>
+    </Border>
 </Page>

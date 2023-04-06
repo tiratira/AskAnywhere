@@ -23,9 +23,9 @@
         </ResourceDictionary>
     </Page.Resources>
 
-    <Page.DataContext>
-        <Settings:SettingsViewModel ConnectionMode="OPENAI_DIRECT" />
-    </Page.DataContext>
+    <d:Page.DataContext>
+        <Settings:SettingsViewModel />
+    </d:Page.DataContext>
 
     <Border>
         <StackPanel Margin="8"
