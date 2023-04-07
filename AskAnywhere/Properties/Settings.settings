@@ -5,7 +5,7 @@
     <Setting Name="BackendType" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="BackendAuthKey" Type="System.String" Scope="User">
+    <Setting Name="OpenAIApiKey" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="UseProxy" Type="System.Boolean" Scope="User">
@@ -15,10 +15,19 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="ProxyPort" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">1080</Value>
+      <Value Profile="(Default)">8080</Value>
     </Setting>
     <Setting Name="Language" Type="System.String" Scope="User">
       <Value Profile="(Default)">en-us</Value>
+    </Setting>
+    <Setting Name="OpenAIProxyServerUrl" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="OpenAIProxyServerSecret" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="AICloudKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>

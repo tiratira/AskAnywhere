@@ -38,12 +38,12 @@ namespace AskAnywhere.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string BackendAuthKey {
+        public string OpenAIApiKey {
             get {
-                return ((string)(this["BackendAuthKey"]));
+                return ((string)(this["OpenAIApiKey"]));
             }
             set {
-                this["BackendAuthKey"] = value;
+                this["OpenAIApiKey"] = value;
             }
         }
         
@@ -73,7 +73,7 @@ namespace AskAnywhere.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1080")]
+        [global::System.Configuration.DefaultSettingValueAttribute("8080")]
         public int ProxyPort {
             get {
                 return ((int)(this["ProxyPort"]));
@@ -92,6 +92,42 @@ namespace AskAnywhere.Properties {
             }
             set {
                 this["Language"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string OpenAIProxyServerUrl {
+            get {
+                return ((string)(this["OpenAIProxyServerUrl"]));
+            }
+            set {
+                this["OpenAIProxyServerUrl"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string OpenAIProxyServerSecret {
+            get {
+                return ((string)(this["OpenAIProxyServerSecret"]));
+            }
+            set {
+                this["OpenAIProxyServerSecret"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string AICloudKey {
+            get {
+                return ((string)(this["AICloudKey"]));
+            }
+            set {
+                this["AICloudKey"] = value;
             }
         }
     }
