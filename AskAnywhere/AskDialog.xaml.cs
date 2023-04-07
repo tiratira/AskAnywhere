@@ -43,10 +43,11 @@ namespace AskAnywhere
 
             var animX = new DoubleAnimation(Width, x, new Duration(TimeSpan.FromMilliseconds(250)));
             animX.EasingFunction = easing;
+            animX.FillBehavior = FillBehavior.Stop;
 
             var animY = new DoubleAnimation(Height, y, new Duration(TimeSpan.FromMilliseconds(250)));
             animY.EasingFunction = easing;
-
+            animY.FillBehavior = FillBehavior.Stop;
 
             BeginAnimation(WidthProperty, animX);
             BeginAnimation(HeightProperty, animY);
@@ -83,6 +84,11 @@ namespace AskAnywhere
             {
                 HintBox.Visibility = Visibility.Collapsed;
             }
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            ChangeSize(300, 80);
         }
     }
 }

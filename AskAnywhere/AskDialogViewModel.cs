@@ -18,7 +18,8 @@ namespace AskAnywhere
     {
         INPUT = 0,
         OUTPUT,
-        FINISH
+        FINISH,
+        ERROR
     }
 
     public class AskDialogViewModel : INotifyPropertyChanged
@@ -35,15 +36,17 @@ namespace AskAnywhere
 
         public string Prompt { get; set; }
 
-        public ICommand ModeCommand { get; set; }
+        public ICommand? ModeCommand { get; set; }
 
-        public ICommand ConfirmCommand { get; set; }
-        public ICommand CancelCommand { get; set; }
+        public ICommand? ConfirmCommand { get; set; }
+        public ICommand? CancelCommand { get; set; }
 
         //public Action? ConfirmAction { get; set; }
 
         public AskDialogViewModel()
         {
+            ConfirmCommand = null;
+            CancelCommand = null;
             AskTarget = string.Empty;
             Prompt = string.Empty;
             ModeCommand = new RelayCommand<TextBox>(HandleCommand);

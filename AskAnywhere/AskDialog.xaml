@@ -13,10 +13,11 @@
         ShowInTaskbar="False"
         Title="AskDialog"
         Height="80"
-        Width="300"
+        Width="107"
+        Loaded="Window_Loaded"
         Topmost="True">
     <Window.DataContext>
-        <local:AskDialogViewModel AskMode="TRANSLATION"
+        <local:AskDialogViewModel AskMode="ASK"
                                   AskTarget="中文"
                                   CurrentState="INPUT" />
     </Window.DataContext>
@@ -52,6 +53,11 @@
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding CurrentState}"
                                              Value="FINISH">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="ERROR">
                                     <Setter Property="Visibility"
                                             Value="Collapsed" />
                                 </DataTrigger>
@@ -93,6 +99,11 @@
                                     <Setter Property="Background"
                                             Value="Transparent" />
                                 </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="ERROR">
+                                    <Setter Property="Background"
+                                            Value="Transparent" />
+                                </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </Border.Style>
@@ -108,7 +119,6 @@
                                             <Setter Property="Visibility"
                                                     Value="Collapsed" />
                                         </DataTrigger>
-
                                         <DataTrigger Binding="{Binding AskMode}"
                                                      Value="ASK">
                                             <Setter Property="Source"
@@ -129,6 +139,11 @@
                                             <Setter Property="Source"
                                                     Value="/AskAnywhere;component/Resources/Icons/smile.png" />
                                         </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurrentState}"
+                                                     Value="ERROR">
+                                            <Setter Property="Source"
+                                                    Value="/AskAnywhere;component/Resources/Icons/err-face.png" />
+                                        </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Image.Style>
@@ -148,6 +163,11 @@
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding CurrentState}"
                                                      Value="FINISH">
+                                            <Setter Property="Visibility"
+                                                    Value="Collapsed" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurrentState}"
+                                                     Value="ERROR">
                                             <Setter Property="Visibility"
                                                     Value="Collapsed" />
                                         </DataTrigger>
@@ -206,6 +226,15 @@
                                     <Setter Property="Text"
                                             Value="{DynamicResource Ask_Thinking}" />
                                 </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="ERROR">
+                                    <Setter Property="Visibility"
+                                            Value="Visible" />
+                                    <Setter Property="Foreground"
+                                            Value="#555" />
+                                    <Setter Property="Text"
+                                            Value="{DynamicResource Ask_Error}" />
+                                </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </TextBlock.Style>
@@ -227,6 +256,11 @@
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding CurrentState}"
                                              Value="FINISH">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="ERROR">
                                     <Setter Property="Visibility"
                                             Value="Collapsed" />
                                 </DataTrigger>
@@ -306,6 +340,27 @@
                            Foreground="#aaa"
                            FontSize="14"
                            VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="OUTPUT">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="FINISH">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="ERROR">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
                 </TextBlock>
             </StackPanel>
         </Border>

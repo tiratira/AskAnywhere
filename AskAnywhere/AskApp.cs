@@ -48,8 +48,6 @@ namespace AskAnywhere
             // set up language
             LanguageSwitcher.Change(language);
 
-
-
             // check if the backend is properly set, if not then spawn a settings wizzard dialog.
             if (string.IsNullOrEmpty(Properties.Settings.Default.BackendType))
             {
@@ -121,7 +119,7 @@ namespace AskAnywhere
 
         private void OnAsk(object? sender, HotkeyEventArgs e)
         {
-            if (_dialog != null) return;
+            if (_dialog != null && _dialog.IsActive) return;
 
             if (!Utils.GetCaretPosition(out _cachedX, out _cachedY, out _cachedWidth, out _cachedHeight, out _hWnd))
             {
@@ -174,6 +172,7 @@ namespace AskAnywhere
                 _dialog?.MoveTo((_cachedX - 20) / _dpiRatio, (_cachedY + _cachedHeight - 22) / _dpiRatio);
             });
 
+            // set finish callback, we should close askdialog now.
             _backendService.SetFinishedCallback(async () =>
             {
                 if (_vm != null) _vm.CurrentState = InputState.FINISH;
@@ -183,8 +182,14 @@ namespace AskAnywhere
                 _dialog = null;
             });
 
-            _backendService.SetErrorCallback(async errmsg => { 
-                
+            // in any case that error occurs, we want ui to show error message and terminate output process.
+            _backendService.SetErrorCallback(async errmsg =>
+            {
+                if (_vm != null) _vm.CurrentState = InputState.ERROR;
+                _dialog?.ChangeSize(112, _dialog.Height);
+                await Task.Delay(1000);
+                _dialog?.Close();
+                _dialog = null;
             });
 
             // while no caret focused on screen, 0,0 returned thus we dont need to spawn ask dialog.
@@ -228,6 +233,8 @@ namespace AskAnywhere
             _dialog.Topmost = false; //HACK: focus issue fix
             _dialog.Topmost = true; //HACK: focus issue fix
             _dialog.Focus();
+
+            //_dialog.ChangeSize(300, 80);
 
             e.Handled = true;
         }
