@@ -121,7 +121,8 @@ namespace AskAnywhere
 
         private void OnAsk(object? sender, HotkeyEventArgs e)
         {
-            DisableKeyboardHook();
+            if (_dialog != null) return;
+
             if (!Utils.GetCaretPosition(out _cachedX, out _cachedY, out _cachedWidth, out _cachedHeight, out _hWnd))
             {
                 Debug.WriteLine("no caret found or error occurs.");
@@ -179,6 +180,11 @@ namespace AskAnywhere
                 _dialog?.ChangeSize(112, _dialog.Height);
                 await Task.Delay(1000);
                 _dialog?.Close();
+                _dialog = null;
+            });
+
+            _backendService.SetErrorCallback(async errmsg => { 
+                
             });
 
             // while no caret focused on screen, 0,0 returned thus we dont need to spawn ask dialog.
@@ -190,10 +196,11 @@ namespace AskAnywhere
                 ConfirmCommand = new RelayCommand(() =>
                 {
                     Debug.WriteLine($"mode:{_vm.AskMode}, target:{_vm.AskTarget}, prompt:{_vm.Prompt}");
+                    _backendService.Ask(_vm.AskMode, _vm.AskTarget, _vm.Prompt);
+
                     _vm.CurrentState = InputState.OUTPUT;
                     _vm.Prompt = "";
                     _dialog?.ChangeSize(140, 80);
-                    _backendService.Ask(_vm.AskMode, _vm.AskTarget, _vm.Prompt);
 
                     if (!Utils.SetActiveWindowAndCaret(_hWnd, _cachedX, _cachedY))
                     {
