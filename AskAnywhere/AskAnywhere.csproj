@@ -18,6 +18,7 @@
     <None Remove="Resources\Icons\ask_anywhere_icon.ico" />
     <None Remove="Resources\Icons\code-white.png" />
     <None Remove="Resources\Icons\code.png" />
+    <None Remove="Resources\Icons\err-face.png" />
     <None Remove="Resources\Icons\smile.png" />
     <None Remove="Resources\Icons\translation-white.png" />
     <None Remove="Resources\Icons\translation.png" />
@@ -27,6 +28,7 @@
 
   <ItemGroup>
     <Content Include="Resources\Icons\appicon.ico" />
+    <Resource Include="Resources\Icons\err-face.png" />
   </ItemGroup>
 
   <ItemGroup>

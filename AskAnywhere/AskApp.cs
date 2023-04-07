@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Windows.Input;
 using System.Reflection;
 using System.IO;
-using System.Windows.Forms;
 using AskAnywhere.Services;
 using AskAnywhere.Commands;
 using AskAnywhere.Properties;
@@ -14,14 +13,14 @@ using CommunityToolkit.Mvvm.Input;
 using H.NotifyIcon;
 using NHotkey.Wpf;
 using NHotkey;
-
+using AskAnywhere.i18n;
 
 namespace AskAnywhere
 {
     public class AskApp
     {
         private readonly System.Windows.Application _hostApp;
-        private TaskbarIcon? _notifyIcon;
+        private static TaskbarIcon? _notifyIcon;
         private AskCommands? _commands;
         private AskDialogViewModel? _vm;
 
@@ -43,6 +42,12 @@ namespace AskAnywhere
 
         public void Startup()
         {
+            string language = Properties.Settings.Default.Language;
+            Debug.WriteLine($"ERROR: loading language presets for {language}");
+
+            // set up language
+            LanguageSwitcher.Change(language);
+
             // check if the backend is properly set, if not then spawn a settings wizzard dialog.
             if (string.IsNullOrEmpty(Properties.Settings.Default.BackendType))
             {
@@ -53,9 +58,7 @@ namespace AskAnywhere
                 if (string.IsNullOrEmpty(Properties.Settings.Default.BackendType)) _hostApp.Shutdown();
             }
 
-            // create taskicon for app
-            _notifyIcon = (TaskbarIcon)_hostApp.FindResource("NotifyIcon");
-            _notifyIcon.ForceCreate(true);
+            SetupTaskIcon();
 
             // read all commands from database file commands.json
             _commands = JsonConvert.DeserializeObject<AskCommands>(Resource.CommandList);
@@ -72,6 +75,28 @@ namespace AskAnywhere
         public void ShutDown()
         {
             DisableKeyboardHook();
+            DisposeTaskIcon();
+        }
+
+        public static void SetupTaskIcon()
+        {
+            var notifyIconDic = new ResourceDictionary();
+            notifyIconDic.Source = new Uri(@"Notification/NotifyIconResources.xaml", UriKind.Relative);
+            Application.Current.Resources.MergedDictionaries.Add(notifyIconDic);
+
+            // create taskicon for app
+            _notifyIcon = (TaskbarIcon)Application.Current.FindResource("NotifyIcon");
+            _notifyIcon.ForceCreate(true);
+        }
+
+        public static void RefreshTaskIcon()
+        {
+            _notifyIcon.UpdateDefaultStyle();
+            _notifyIcon.DataContext = new NotifyIconViewModel();
+        }
+
+        public static void DisposeTaskIcon()
+        {
             _notifyIcon?.Dispose();
         }
 
@@ -94,7 +119,8 @@ namespace AskAnywhere
 
         private void OnAsk(object? sender, HotkeyEventArgs e)
         {
-            DisableKeyboardHook();
+            if (_dialog != null && _dialog.IsActive) return;
+
             if (!Utils.GetCaretPosition(out _cachedX, out _cachedY, out _cachedWidth, out _cachedHeight, out _hWnd))
             {
                 Debug.WriteLine("no caret found or error occurs.");
@@ -146,12 +172,24 @@ namespace AskAnywhere
                 _dialog?.MoveTo((_cachedX - 20) / _dpiRatio, (_cachedY + _cachedHeight - 22) / _dpiRatio);
             });
 
+            // set finish callback, we should close askdialog now.
             _backendService.SetFinishedCallback(async () =>
             {
                 if (_vm != null) _vm.CurrentState = InputState.FINISH;
                 _dialog?.ChangeSize(112, _dialog.Height);
                 await Task.Delay(1000);
                 _dialog?.Close();
+                _dialog = null;
+            });
+
+            // in any case that error occurs, we want ui to show error message and terminate output process.
+            _backendService.SetErrorCallback(async errmsg =>
+            {
+                if (_vm != null) _vm.CurrentState = InputState.ERROR;
+                _dialog?.ChangeSize(112, _dialog.Height);
+                await Task.Delay(1000);
+                _dialog?.Close();
+                _dialog = null;
             });
 
             // while no caret focused on screen, 0,0 returned thus we dont need to spawn ask dialog.
@@ -163,9 +201,11 @@ namespace AskAnywhere
                 ConfirmCommand = new RelayCommand(() =>
                 {
                     Debug.WriteLine($"mode:{_vm.AskMode}, target:{_vm.AskTarget}, prompt:{_vm.Prompt}");
-                    _vm.CurrentState = InputState.OUTPUT;
-                    _dialog?.ChangeSize(140, 80);
                     _backendService.Ask(_vm.AskMode, _vm.AskTarget, _vm.Prompt);
+
+                    _vm.CurrentState = InputState.OUTPUT;
+                    _vm.Prompt = "";
+                    _dialog?.ChangeSize(140, 80);
 
                     if (!Utils.SetActiveWindowAndCaret(_hWnd, _cachedX, _cachedY))
                     {
@@ -194,6 +234,8 @@ namespace AskAnywhere
             _dialog.Topmost = true; //HACK: focus issue fix
             _dialog.Focus();
 
+            //_dialog.ChangeSize(300, 80);
+
             e.Handled = true;
         }
 
@@ -218,7 +260,7 @@ namespace AskAnywhere
         /// we copy text parts into copyboard, and simulate a 'ctrl+v' key input on target caret place.
         /// </summary>
         /// <param name="data"></param>
-        public void SendText(string data) 
+        public void SendText(string data)
         {
             if (string.IsNullOrEmpty(data))
             {

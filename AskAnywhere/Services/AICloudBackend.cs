@@ -145,7 +145,7 @@ namespace AskAnywhere.Services
             {
                 Model = "gpt-3.5-turbo",
                 Messages = new List<ChatMessage>() {
-            //new ChatMessage() {Role = "system", Content = systemMsg},
+            //new ChatMessage() {Role = "system", Content = "This is a conversation between user and AI assistant."},
             new ChatMessage() {Role = "user", Content = systemMsg}
             },
                 Stream = true

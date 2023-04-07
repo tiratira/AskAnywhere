@@ -5,6 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:hc="https://handyorg.github.io/handycontrol"
       xmlns:Settings="clr-namespace:AskAnywhere.Settings"
+      xmlns:common="clr-namespace:AskAnywhere.Common"
       xmlns:local="clr-namespace:AskAnywhere.Settings.Pages"
       mc:Ignorable="d"
       d:DesignHeight="450"
@@ -13,6 +14,7 @@
       Title="LanguagePage">
     <Page.Resources>
         <ResourceDictionary>
+            <common:DisplayLanguageToIntConverter x:Key="DisplayLanguageToIntConverter" />
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml" />
@@ -26,10 +28,18 @@
     <Border>
         <StackPanel Margin="8">
             <RadioButton Margin="8"
+                         IsChecked="{Binding DisplayLanguage,Converter={StaticResource DisplayLanguageToIntConverter}, ConverterParameter=0}"
+                         Command="{Binding ChangeLanguageCommand}"
+                         CommandParameter="0"
                          HorizontalAlignment="Left"
+                         GroupName="langgr"
                          Content="中文" />
             <RadioButton Margin="8"
+                         IsChecked="{Binding DisplayLanguage,Converter={StaticResource DisplayLanguageToIntConverter}, ConverterParameter=1}"
+                         Command="{Binding ChangeLanguageCommand}"
+                         CommandParameter="1"
                          HorizontalAlignment="Left"
+                         GroupName="langgr"
                          Content="English" />
         </StackPanel>
     </Border>

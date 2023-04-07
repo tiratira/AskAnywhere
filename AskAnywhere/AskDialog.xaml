@@ -13,10 +13,11 @@
         ShowInTaskbar="False"
         Title="AskDialog"
         Height="80"
-        Width="240"
+        Width="107"
+        Loaded="Window_Loaded"
         Topmost="True">
     <Window.DataContext>
-        <local:AskDialogViewModel AskMode="TRANSLATION"
+        <local:AskDialogViewModel AskMode="ASK"
                                   AskTarget="中文"
                                   CurrentState="INPUT" />
     </Window.DataContext>
@@ -55,6 +56,11 @@
                                     <Setter Property="Visibility"
                                             Value="Collapsed" />
                                 </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="ERROR">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </spinner:ucSpinnerDotCircle.Style>
@@ -62,6 +68,8 @@
                 </spinner:ucSpinnerDotCircle>
 
                 <Border Margin="4"
+                        x:Name="ModeBlock"
+                        Height="26"
                         CornerRadius="4">
                     <Border.Style>
                         <Style TargetType="Border">
@@ -91,6 +99,11 @@
                                     <Setter Property="Background"
                                             Value="Transparent" />
                                 </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="ERROR">
+                                    <Setter Property="Background"
+                                            Value="Transparent" />
+                                </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </Border.Style>
@@ -106,7 +119,6 @@
                                             <Setter Property="Visibility"
                                                     Value="Collapsed" />
                                         </DataTrigger>
-
                                         <DataTrigger Binding="{Binding AskMode}"
                                                      Value="ASK">
                                             <Setter Property="Source"
@@ -126,6 +138,11 @@
                                                      Value="FINISH">
                                             <Setter Property="Source"
                                                     Value="/AskAnywhere;component/Resources/Icons/smile.png" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurrentState}"
+                                                     Value="ERROR">
+                                            <Setter Property="Source"
+                                                    Value="/AskAnywhere;component/Resources/Icons/err-face.png" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -149,23 +166,28 @@
                                             <Setter Property="Visibility"
                                                     Value="Collapsed" />
                                         </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurrentState}"
+                                                     Value="ERROR">
+                                            <Setter Property="Visibility"
+                                                    Value="Collapsed" />
+                                        </DataTrigger>
                                         <DataTrigger Binding="{Binding AskMode}"
                                                      Value="ASK">
 
                                             <Setter Property="Text"
-                                                    Value="提问" />
+                                                    Value="{StaticResource AskMode_Ask}" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding AskMode}"
                                                      Value="CODE">
 
                                             <Setter Property="Text"
-                                                    Value="代码" />
+                                                    Value="{StaticResource AskMode_Code}" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding AskMode}"
                                                      Value="TRANSLATION">
 
                                             <Setter Property="Text"
-                                                    Value="翻译" />
+                                                    Value="{StaticResource AskMode_Translation}" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -193,7 +215,7 @@
                                     <Setter Property="Foreground"
                                             Value="#555" />
                                     <Setter Property="Text"
-                                            Value="完成" />
+                                            Value="{DynamicResource Ask_Done}" />
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding CurrentState}"
                                              Value="OUTPUT">
@@ -202,7 +224,16 @@
                                     <Setter Property="Foreground"
                                             Value="#555" />
                                     <Setter Property="Text"
-                                            Value="思考中..." />
+                                            Value="{DynamicResource Ask_Thinking}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="ERROR">
+                                    <Setter Property="Visibility"
+                                            Value="Visible" />
+                                    <Setter Property="Foreground"
+                                            Value="#555" />
+                                    <Setter Property="Text"
+                                            Value="{DynamicResource Ask_Error}" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -210,6 +241,7 @@
                 </TextBlock>
 
                 <Border VerticalAlignment="Center"
+                        x:Name="TargetBlock"
                         Margin="0 0 4 0"
                         Height="26"
                         Background="#ccc"
@@ -227,11 +259,15 @@
                                     <Setter Property="Visibility"
                                             Value="Collapsed" />
                                 </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="ERROR">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </Border.Style>
                     <TextBlock Text="{Binding AskTarget}"
-                               x:Name="TargetBlock"
                                Foreground="#555"
                                Margin="4 0"
                                VerticalAlignment="Center"
@@ -270,7 +306,8 @@
                          FontSize="14"
                          VerticalAlignment="Center"
                          TextWrapping="Wrap"
-                         MaxWidth="240"
+                         MaxWidth="320"
+                         IsVisibleChanged="InputBox_IsVisibleChanged"
                          TextChanged="InputBox_TextChanged">
                     <TextBox.Style>
                         <Style TargetType="TextBox">
@@ -298,6 +335,33 @@
                                     CommandParameter="{Binding ElementName=InputBox}" />
                     </TextBox.InputBindings>
                 </TextBox>
+                <TextBlock x:Name="HintBox"
+                           Text="{DynamicResource AskMode_Hint}"
+                           Foreground="#aaa"
+                           FontSize="14"
+                           VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="OUTPUT">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="FINISH">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="ERROR">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
             </StackPanel>
         </Border>
     </Grid>

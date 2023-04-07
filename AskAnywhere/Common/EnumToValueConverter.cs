@@ -29,4 +29,6 @@ namespace AskAnywhere.Common
     public class ConnectionModeToIntConverter : EnumToValueConverter<ConnectionMode> { }
 
     public class SettingPageToIntConverter : EnumToValueConverter<SettingPage> { }
+
+    public class DisplayLanguageToIntConverter : EnumToValueConverter<Language> { }
 }

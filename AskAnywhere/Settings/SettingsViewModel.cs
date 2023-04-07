@@ -1,6 +1,8 @@
 ﻿using AskAnywhere.Common;
+using AskAnywhere.i18n;
 using AskAnywhere.Settings.Pages;
 using CommunityToolkit.Mvvm.Input;
+using H.NotifyIcon;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -8,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -42,6 +45,8 @@ namespace AskAnywhere.Settings
         #region Language settings
 
         public Language DisplayLanguage { get; set; } = Language.CHINESE;
+
+        public ICommand ChangeLanguageCommand { get; set; }
 
         #endregion
 
@@ -78,7 +83,13 @@ namespace AskAnywhere.Settings
 
         public SettingsViewModel()
         {
-            Debug.WriteLine(Properties.Settings.Default.BackendType);
+            DisplayLanguage = Language.ENGLISH;
+
+            if (Properties.Settings.Default.Language == "en-us")
+                DisplayLanguage = Language.ENGLISH;
+
+            if (Properties.Settings.Default.Language == "zh-cn")
+                DisplayLanguage = Language.CHINESE;
 
             UseProxy = Properties.Settings.Default.UseProxy;
             ProxyAddress = Properties.Settings.Default.ProxyAddress;
@@ -134,6 +145,31 @@ namespace AskAnywhere.Settings
             };
 
             ConfirmCommand = command;
+
+            var changeLanguageCmd = new DelegateCommand();
+            changeLanguageCmd.CanExecuteFunc = () => true;
+            changeLanguageCmd.CommandAction = (value) =>
+            {
+                var indexString = (string)value;
+                var lang = (Language)int.Parse(indexString);
+                Debug.WriteLine($"change language to {lang}");
+                switch (lang)
+                {
+                    case Language.CHINESE:
+                        Properties.Settings.Default.Language = "zh-cn";
+                        LanguageSwitcher.Change("zh-cn");
+                        break;
+                    case Language.ENGLISH:
+                        Properties.Settings.Default.Language = "en-us";
+                        LanguageSwitcher.Change("en-us");
+                        break;
+                    default:
+                        LanguageSwitcher.Change("en-us");
+                        break;
+                }
+                AskApp.RefreshTaskIcon();
+            };
+            ChangeLanguageCommand = changeLanguageCmd;
         }
     }
 }
