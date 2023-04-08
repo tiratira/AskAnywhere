@@ -35,6 +35,14 @@ namespace AskAnywhere.Services
             }
         }
 
+        /// <summary>
+        /// Special credit to iamlovedit. Generate OpenAI stream answer.
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <param name="target"></param>
+        /// <param name="prompt"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async IAsyncEnumerable<ResultChunk> GenerateAnswerStream(AskMode mode, string target, string prompt, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             HttpClient httpClient;
@@ -58,6 +66,8 @@ namespace AskAnywhere.Services
 
             var request = new HttpRequestMessage(HttpMethod.Post, OPENAI_API);
 
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _apiKey);
+
             var completionData = CreateTextCompleteData(mode, target, prompt);
 
             var bodyJson = JsonConvert.SerializeObject(completionData);
@@ -67,16 +77,33 @@ namespace AskAnywhere.Services
             var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                using (var stream = await response.Content.ReadAsStreamAsync(cancellationToken))
+                using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                var buffer = new byte[1024];
+                int bytes;
+                while ((bytes = await stream.ReadAsync(buffer, cancellationToken)) > 0)
                 {
-                    var buffer = new byte[1024];
-                    var bytes = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-                    while (bytes > 0)
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var responseText = Encoding.UTF8.GetString(buffer, 0, bytes);
+                    var parts = responseText.Split("data: ");
+                    foreach (var part in parts)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        var responseText = Encoding.UTF8.GetString(buffer, 0, bytes);
-                        yield return new ResultChunk(ResultChunk.ChunkType.DATA, responseText);
-                        bytes = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                        if (string.IsNullOrEmpty(part)) continue;
+                        if (part.StartsWith("[DONE]"))
+                        {
+                            yield return new ResultChunk(ResultChunk.ChunkType.FINISH, "");
+                            yield break;
+                        }
+                        var chunk = JsonConvert.DeserializeObject<ChatCompletionChunk>(part);
+                        if (chunk == null)
+                        {
+                            yield return new ResultChunk(ResultChunk.ChunkType.ERROR, "ERR: Data incomplete");
+                            yield break;
+                        }
+                        var content = chunk.Choices[0].Delta.Content;
+                        if (!string.IsNullOrEmpty(content))
+                        {
+                            yield return new ResultChunk(ResultChunk.ChunkType.DATA, content);
+                        }
                     }
                 }
             }
