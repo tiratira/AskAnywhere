@@ -68,7 +68,6 @@ namespace AskAnywhere.Services
             if (response.IsSuccessStatusCode)
             {
                 var responseStr = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine(responseStr);
                 var resObject = JsonConvert.DeserializeObject<AiServerResponse<AskSessionData>>(responseStr);
                 if (resObject.Result)
                 {
@@ -86,6 +85,7 @@ namespace AskAnywhere.Services
 
         private async IAsyncEnumerable<ResultChunk> RetrieveDataAsync(string sessionId)
         {
+            int blankCount = 0;
             while (!_terminateFlag)
             {
                 {
@@ -108,8 +108,26 @@ namespace AskAnywhere.Services
                     }
                     var request = new HttpRequestMessage(HttpMethod.Get,
                     $"{AICLOUD_API}/text/get?openid={_aicloudKey}&session={sessionId}");
-                    var response = await client.SendAsync(request);
-                    if (response.IsSuccessStatusCode)
+
+                    HttpResponseMessage? response = null;
+                    Exception? err = null;
+                    try
+                    {
+                        response = await client.SendAsync(request);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"Connection error: {e.Message}");
+                        err = e;
+                    }
+
+                    if (err != null)
+                    {
+                        yield return new ResultChunk(ResultChunk.ChunkType.ERROR, $"ERR: {err.Message}");
+                        yield break;
+                    }
+
+                    if (response != null && response.IsSuccessStatusCode)
                     {
                         var responseStr = await response.Content.ReadAsStringAsync();
                         Debug.WriteLine(responseStr);
@@ -119,6 +137,7 @@ namespace AskAnywhere.Services
                             var text = resObject.Data.Text;
                             if (text.Length > 0)
                             {
+                                blankCount = 0;
                                 if (text.EndsWith("[DONE]"))
                                 {
                                     text = text.Substring(0, text.Length - 6);
@@ -127,6 +146,7 @@ namespace AskAnywhere.Services
                                 _onTextReceived?.Invoke(text);
                                 yield return new ResultChunk(ResultChunk.ChunkType.DATA, text);
                             }
+                            else blankCount++;
 
                             if (resObject.Data.Finish)
                             {
@@ -140,6 +160,9 @@ namespace AskAnywhere.Services
                         yield return new ResultChunk(ResultChunk.ChunkType.ERROR, "");
                         yield break;
                     }
+
+                    int wait = blankCount * 100 < 1000 ? blankCount * 100 : 1000;
+                    await Task.Delay(wait);
                 }
             }
             _onFinished?.Invoke();

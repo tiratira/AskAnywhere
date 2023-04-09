@@ -178,25 +178,32 @@ namespace AskAnywhere
                     // now we use async stream to receive text
                     await foreach (var chunk in _backendService.Ask(_vm.AskMode, _vm.AskTarget, requestPrompt))
                     {
-                        if (!Utils.SetActiveWindowAndCaret(_hWnd, _cachedX, _cachedY))
-                        {
-                            Debug.WriteLine("set caret failed, please check out the code.");
-                            return;
-                        }
 
                         if (chunk.Type == ResultChunk.ChunkType.DATA)
                         {
+                            if (!Utils.SetActiveWindowAndCaret(_hWnd, _cachedX, _cachedY))
+                            {
+                                Debug.WriteLine("set caret failed, please check out the code.");
+                                return;
+                            }
+
+                            // hack: to avoid caret being inactive.
+                            System.Windows.Forms.SendKeys.SendWait("{LEFT}");
+                            System.Windows.Forms.SendKeys.SendWait("{RIGHT}");
+
                             SendText(chunk.Data);
+
                             if (!Utils.GetCaretPosition(out _cachedX, out _cachedY, out _cachedWidth, out _cachedHeight, out _hWnd))
                             {
                                 Debug.WriteLine("no caret found or error occurs.");
                                 return;
                             }
 
-                            _dialog?.MoveTo((_cachedX - 20) / _dpiRatio, (_cachedY + _cachedHeight - 22) / _dpiRatio);
+                            if (_cachedX > 0 && _cachedY > 0)
+                                _dialog?.MoveTo((_cachedX - 20) / _dpiRatio, (_cachedY + _cachedHeight - 22) / _dpiRatio);
                         }
 
-                        if(chunk.Type == ResultChunk.ChunkType.FINISH)
+                        if (chunk.Type == ResultChunk.ChunkType.FINISH)
                         {
                             if (_vm != null) _vm.CurrentState = InputState.FINISH;
                             _dialog?.ChangeSize(112, _dialog.Height);
@@ -206,7 +213,7 @@ namespace AskAnywhere
                             break;
                         }
 
-                        if(chunk.Type == ResultChunk.ChunkType.ERROR)
+                        if (chunk.Type == ResultChunk.ChunkType.ERROR)
                         {
                             if (_vm != null) _vm.CurrentState = InputState.ERROR;
                             _dialog?.ChangeSize(112, _dialog.Height);
@@ -265,16 +272,29 @@ namespace AskAnywhere
         /// we copy text parts into copyboard, and simulate a 'ctrl+v' key input on target caret place.
         /// </summary>
         /// <param name="data"></param>
-        public void SendText(string data)
+        public async void SendText(string data)
         {
             if (string.IsNullOrEmpty(data))
             {
                 return;
             }
 
-            if (!Utils.SendTextToCaret(_hWnd, data))
+            var parts = data.Split("\n");
+            for (int i = 0; i < parts.Length; i++)
             {
-                Debug.WriteLine("ERROR: can not send text!");
+                if (parts[i].Length > 0)
+                {
+                    if (!Utils.SendTextToCaret(_hWnd, parts[i]))
+                    {
+                        Debug.WriteLine("ERROR: can not send text!");
+                    }
+                }
+
+                if (i < parts.Length - 1)
+                {
+                    System.Windows.Forms.SendKeys.SendWait("+({ENTER})");
+                    await Task.Delay(50);
+                }
             }
 
             //System.Windows.Clipboard.SetDataObject(data, true);

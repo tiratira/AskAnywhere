@@ -3,6 +3,7 @@ using AskAnywhere.Settings;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -50,19 +51,23 @@ namespace AskAnywhere.Services
             {
                 var address = SettingsManager.Get<string>("ProxyAddress");
                 var port = SettingsManager.Get<int>("ProxyPort");
+                Debug.WriteLine($"using proxy: http://{address}:{port}");
                 var proxy = new WebProxy()
                 {
                     Address = new Uri($"http://{address}:{port}"),
                     BypassProxyOnLocal = false,
-                    UseDefaultCredentials = false
+                    UseDefaultCredentials = true,
                 };
                 var handler = new HttpClientHandler()
                 {
                     Proxy = proxy,
                 };
+                handler.SslProtocols = System.Security.Authentication.SslProtocols.None;
                 httpClient = new HttpClient(handler);
             }
             else httpClient = new HttpClient();
+
+            //httpClient.Timeout = TimeSpan.FromSeconds(10);
 
             var request = new HttpRequestMessage(HttpMethod.Post, OPENAI_API);
 
@@ -74,9 +79,28 @@ namespace AskAnywhere.Services
             var strContent = new StringContent(bodyJson, Encoding.UTF8, "application/json");
             request.Content = strContent;
 
-            var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-            if (response.IsSuccessStatusCode)
+            HttpResponseMessage? response = null;
+            Exception? err = null;
+            try
             {
+                Debug.WriteLine("sending msg to OpenAI...");
+                response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Connection error: {e.Message}");
+                err = e;
+            }
+
+            if (err != null)
+            {
+                yield return new ResultChunk(ResultChunk.ChunkType.ERROR, $"ERR: {err.Message}");
+                yield break;
+            }
+
+            if (response != null && response.IsSuccessStatusCode)
+            {
+                Debug.WriteLine("receiving data...");
                 using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
                 var buffer = new byte[1024];
                 int bytes;
@@ -109,6 +133,7 @@ namespace AskAnywhere.Services
             }
             else
             {
+                Debug.WriteLine(response.ToString());
                 yield return new ResultChunk(ResultChunk.ChunkType.ERROR, $"网络请求错误 {response.StatusCode}");
             }
         }
