@@ -56,7 +56,11 @@ namespace AskAnywhere
                 settingDialog.ShowDialog();
 
                 // if user closes dialog without setting any api settings then quit app.
-                if (string.IsNullOrEmpty(Properties.Settings.Default.BackendType)) _hostApp.Shutdown();
+                if (string.IsNullOrEmpty(Properties.Settings.Default.BackendType))
+                {
+                    _hostApp.Shutdown();
+                    return;
+                }
             }
 
             SetupTaskIcon();
