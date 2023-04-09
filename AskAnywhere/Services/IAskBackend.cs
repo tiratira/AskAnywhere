@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace AskAnywhere.Services
 {
@@ -7,6 +8,24 @@ namespace AskAnywhere.Services
         ASK = 0,
         CODE,
         TRANSLATION
+    }
+
+    public class ResultChunk
+    {
+        public enum ChunkType
+        {
+            DATA = 0,
+            FINISH,
+            ERROR
+        }
+        public ChunkType Type { get; set; } = ChunkType.DATA;
+        public string Data { get; set; } = "";
+
+        public ResultChunk(ChunkType type, string data)
+        {
+            Type = type;
+            Data = data;
+        }
     }
 
     /// <summary>
@@ -19,7 +38,7 @@ namespace AskAnywhere.Services
         /// This is used to set authorization information for the target backend service.
         /// </summary>
         /// <param name="key">auth key, typicaly API key.</param>
-        public void SetAuthorizationKey(string key);
+        //public void SetAuthorizationKey(string key);
 
         /// <summary>
         /// Send an asking request.
@@ -27,7 +46,8 @@ namespace AskAnywhere.Services
         /// <param name="mode">The request mode of this asking request, supposed to be one of ASK, CODE and TRANSLATION</param>
         /// <param name="target">The target string indicates a secondary infomation that the request contains.</param>
         /// <param name="prompt">The main prompt to be sent to backend.</param>
-        public void Ask(AskMode mode, string target, string prompt);
+        /// <returns>the answering text stream</returns>
+        public IAsyncEnumerable<ResultChunk> Ask(AskMode mode, string target, string prompt);
 
         /// <summary>
         /// Set up a callback function to trigger when receiving a text reply.

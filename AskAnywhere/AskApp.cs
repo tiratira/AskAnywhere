@@ -14,6 +14,7 @@ using H.NotifyIcon;
 using NHotkey.Wpf;
 using NHotkey;
 using AskAnywhere.i18n;
+using AskAnywhere.Settings;
 
 namespace AskAnywhere
 {
@@ -55,7 +56,11 @@ namespace AskAnywhere
                 settingDialog.ShowDialog();
 
                 // if user closes dialog without setting any api settings then quit app.
-                if (string.IsNullOrEmpty(Properties.Settings.Default.BackendType)) _hostApp.Shutdown();
+                if (string.IsNullOrEmpty(Properties.Settings.Default.BackendType))
+                {
+                    _hostApp.Shutdown();
+                    return;
+                }
             }
 
             SetupTaskIcon();
@@ -129,7 +134,7 @@ namespace AskAnywhere
             Debug.WriteLine($"caret pos: {_cachedX}, {_cachedY}");
 
             // We get the target backend type name here from settings.
-            var backendTypeName = Properties.Settings.Default.BackendType;
+            var backendTypeName = SettingsManager.Get<string>("BackendType");
 
             if (string.IsNullOrEmpty(backendTypeName))
             {
@@ -140,7 +145,6 @@ namespace AskAnywhere
             try
             {
                 _backendService = (IAskBackend)typeof(AskApp).Assembly.CreateInstance(backendTypeName)!;
-                _backendService.SetAuthorizationKey(Properties.Settings.Default.BackendAuthKey);
             }
             catch (Exception err)
             {
@@ -152,56 +156,18 @@ namespace AskAnywhere
                 throw new Exception("ERROR: no backend instance created!");
             }
 
-            // If backend service instance created successfully, then we can properly set essential callbacks to work.
-            _backendService.SetTextReceivedCallback(text =>
-            {
-                if (!Utils.SetActiveWindowAndCaret(_hWnd, _cachedX, _cachedY))
-                {
-                    Debug.WriteLine("set caret failed, please check out the code.");
-                    return;
-                }
-
-                SendText(text);
-
-                if (!Utils.GetCaretPosition(out _cachedX, out _cachedY, out _cachedWidth, out _cachedHeight, out _hWnd))
-                {
-                    Debug.WriteLine("no caret found or error occurs.");
-                    return;
-                }
-
-                _dialog?.MoveTo((_cachedX - 20) / _dpiRatio, (_cachedY + _cachedHeight - 22) / _dpiRatio);
-            });
-
-            // set finish callback, we should close askdialog now.
-            _backendService.SetFinishedCallback(async () =>
-            {
-                if (_vm != null) _vm.CurrentState = InputState.FINISH;
-                _dialog?.ChangeSize(112, _dialog.Height);
-                await Task.Delay(1000);
-                _dialog?.Close();
-                _dialog = null;
-            });
-
-            // in any case that error occurs, we want ui to show error message and terminate output process.
-            _backendService.SetErrorCallback(async errmsg =>
-            {
-                if (_vm != null) _vm.CurrentState = InputState.ERROR;
-                _dialog?.ChangeSize(112, _dialog.Height);
-                await Task.Delay(1000);
-                _dialog?.Close();
-                _dialog = null;
-            });
-
             // while no caret focused on screen, 0,0 returned thus we dont need to spawn ask dialog.
             if (_cachedX == 0 && _cachedY == 0)
                 return;
+
             _vm = new AskDialogViewModel
             {
                 AskCommands = _commands,
-                ConfirmCommand = new RelayCommand(() =>
+                ConfirmCommand = new RelayCommand(async () =>
                 {
                     Debug.WriteLine($"mode:{_vm.AskMode}, target:{_vm.AskTarget}, prompt:{_vm.Prompt}");
-                    _backendService.Ask(_vm.AskMode, _vm.AskTarget, _vm.Prompt);
+
+                    var requestPrompt = _vm.Prompt;
 
                     _vm.CurrentState = InputState.OUTPUT;
                     _vm.Prompt = "";
@@ -212,7 +178,57 @@ namespace AskAnywhere
                         Debug.WriteLine("set caret failed, please check out the code.");
                         return;
                     }
+
+                    // now we use async stream to receive text
+                    await foreach (var chunk in _backendService.Ask(_vm.AskMode, _vm.AskTarget, requestPrompt))
+                    {
+
+                        if (chunk.Type == ResultChunk.ChunkType.DATA)
+                        {
+                            if (!Utils.SetActiveWindowAndCaret(_hWnd, _cachedX, _cachedY))
+                            {
+                                Debug.WriteLine("set caret failed, please check out the code.");
+                                return;
+                            }
+
+                            // hack: to avoid caret being inactive.
+                            System.Windows.Forms.SendKeys.SendWait("{LEFT}");
+                            System.Windows.Forms.SendKeys.SendWait("{RIGHT}");
+
+                            SendText(chunk.Data);
+
+                            if (!Utils.GetCaretPosition(out _cachedX, out _cachedY, out _cachedWidth, out _cachedHeight, out _hWnd))
+                            {
+                                Debug.WriteLine("no caret found or error occurs.");
+                                return;
+                            }
+
+                            if (_cachedX > 0 && _cachedY > 0)
+                                _dialog?.MoveTo((_cachedX - 20) / _dpiRatio, (_cachedY + _cachedHeight - 22) / _dpiRatio);
+                        }
+
+                        if (chunk.Type == ResultChunk.ChunkType.FINISH)
+                        {
+                            if (_vm != null) _vm.CurrentState = InputState.FINISH;
+                            _dialog?.ChangeSize(112, _dialog.Height);
+                            await Task.Delay(1000);
+                            _dialog?.Close();
+                            _dialog = null;
+                            break;
+                        }
+
+                        if (chunk.Type == ResultChunk.ChunkType.ERROR)
+                        {
+                            if (_vm != null) _vm.CurrentState = InputState.ERROR;
+                            _dialog?.ChangeSize(112, _dialog.Height);
+                            await Task.Delay(1000);
+                            _dialog?.Close();
+                            _dialog = null;
+                            break;
+                        }
+                    }
                 }),
+
                 CancelCommand = new RelayCommand(() => { _dialog?.Close(); }),
             };
 
@@ -260,16 +276,29 @@ namespace AskAnywhere
         /// we copy text parts into copyboard, and simulate a 'ctrl+v' key input on target caret place.
         /// </summary>
         /// <param name="data"></param>
-        public void SendText(string data)
+        public async void SendText(string data)
         {
             if (string.IsNullOrEmpty(data))
             {
                 return;
             }
 
-            if (!Utils.SendTextToCaret(_hWnd, data))
+            var parts = data.Split("\n");
+            for (int i = 0; i < parts.Length; i++)
             {
-                Debug.WriteLine("ERROR: can not send text!");
+                if (parts[i].Length > 0)
+                {
+                    if (!Utils.SendTextToCaret(_hWnd, parts[i]))
+                    {
+                        Debug.WriteLine("ERROR: can not send text!");
+                    }
+                }
+
+                if (i < parts.Length - 1)
+                {
+                    System.Windows.Forms.SendKeys.SendWait("+({ENTER})");
+                    await Task.Delay(50);
+                }
             }
 
             //System.Windows.Clipboard.SetDataObject(data, true);

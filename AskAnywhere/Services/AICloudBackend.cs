@@ -1,10 +1,12 @@
 ﻿using AskAnywhere.OpenAI;
+using AskAnywhere.Settings;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -23,92 +25,144 @@ namespace AskAnywhere.Services
 
         private bool _terminateFlag = false;
 
-        public async void Ask(AskMode mode, string target, string prompt)
+        public AICloudBackend()
+        {
+            _aicloudKey = SettingsManager.Get<string>("AICloudKey");
+        }
+
+        public async IAsyncEnumerable<ResultChunk> Ask(AskMode mode, string target, string prompt)
         {
             _terminateFlag = false;
 
             var completionData = CreateTextCompleteData(mode, target, prompt);
 
-            using (var client = new HttpClient())
+            var client = new HttpClient();
+            if (SettingsManager.Get<bool>("UseProxy"))
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, $"{AICLOUD_API}/text/chat");
-                var data = new AskRequest()
+                var address = SettingsManager.Get<string>("ProxyAddress");
+                var port = SettingsManager.Get<int>("ProxyPort");
+                var proxy = new WebProxy()
                 {
-                    Messages = completionData.Messages,
-                    OpenId = _aicloudKey,
-                    Mode = "ask"
+                    Address = new Uri($"http://{address}:{port}"),
+                    BypassProxyOnLocal = false,
+                    UseDefaultCredentials = false
                 };
-                var dataStr = JsonConvert.SerializeObject(data);
-                try
+                var handler = new HttpClientHandler()
                 {
-                    request.Content = new StringContent(dataStr, Encoding.UTF8, "application/json");
-                    var response = await client.SendAsync(request);
-                    if (response.IsSuccessStatusCode)
+                    Proxy = proxy,
+                };
+                client = new HttpClient(handler);
+            }
+
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{AICLOUD_API}/text/chat");
+            var data = new AskRequest()
+            {
+                Messages = completionData.Messages,
+                OpenId = _aicloudKey,
+                Mode = "ask"
+            };
+            var dataStr = JsonConvert.SerializeObject(data);
+
+            request.Content = new StringContent(dataStr, Encoding.UTF8, "application/json");
+            var response = await client.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                var responseStr = await response.Content.ReadAsStringAsync();
+                var resObject = JsonConvert.DeserializeObject<AiServerResponse<AskSessionData>>(responseStr);
+                if (resObject.Result)
+                {
+                    await foreach (var chunk in RetrieveDataAsync(resObject.Data.SessionId))
+                    {
+                        yield return chunk;
+                    };
+                }
+            }
+            else
+            {
+                _onError?.Invoke($"ERROR: connection failed, code {response.StatusCode}");
+            }
+        }
+
+        private async IAsyncEnumerable<ResultChunk> RetrieveDataAsync(string sessionId)
+        {
+            int blankCount = 0;
+            while (!_terminateFlag)
+            {
+                {
+                    var client = new HttpClient();
+                    if (SettingsManager.Get<bool>("UseProxy"))
+                    {
+                        var address = SettingsManager.Get<string>("ProxyAddress");
+                        var port = SettingsManager.Get<int>("ProxyPort");
+                        var proxy = new WebProxy()
+                        {
+                            Address = new Uri($"http://{address}:{port}"),
+                            BypassProxyOnLocal = false,
+                            UseDefaultCredentials = false
+                        };
+                        var handler = new HttpClientHandler()
+                        {
+                            Proxy = proxy,
+                        };
+                        client = new HttpClient(handler);
+                    }
+                    var request = new HttpRequestMessage(HttpMethod.Get,
+                    $"{AICLOUD_API}/text/get?openid={_aicloudKey}&session={sessionId}");
+
+                    HttpResponseMessage? response = null;
+                    Exception? err = null;
+                    try
+                    {
+                        response = await client.SendAsync(request);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"Connection error: {e.Message}");
+                        err = e;
+                    }
+
+                    if (err != null)
+                    {
+                        yield return new ResultChunk(ResultChunk.ChunkType.ERROR, $"ERR: {err.Message}");
+                        yield break;
+                    }
+
+                    if (response != null && response.IsSuccessStatusCode)
                     {
                         var responseStr = await response.Content.ReadAsStringAsync();
                         Debug.WriteLine(responseStr);
-                        var resObject = JsonConvert.DeserializeObject<AiServerResponse<AskSessionData>>(responseStr);
+                        var resObject = JsonConvert.DeserializeObject<AiServerResponse<AskChunkData>>(responseStr);
                         if (resObject.Result)
                         {
-                            await RetrieveDataAsync(resObject.Data.SessionId);
+                            var text = resObject.Data.Text;
+                            if (text.Length > 0)
+                            {
+                                blankCount = 0;
+                                if (text.EndsWith("[DONE]"))
+                                {
+                                    text = text.Substring(0, text.Length - 6);
+
+                                }
+                                _onTextReceived?.Invoke(text);
+                                yield return new ResultChunk(ResultChunk.ChunkType.DATA, text);
+                            }
+                            else blankCount++;
+
+                            if (resObject.Data.Finish)
+                            {
+                                yield return new ResultChunk(ResultChunk.ChunkType.FINISH, "");
+                                yield break;
+                            }
                         }
                     }
                     else
                     {
-                        _onError?.Invoke($"ERROR: connection failed, code {response.StatusCode}");
+                        yield return new ResultChunk(ResultChunk.ChunkType.ERROR, "");
+                        yield break;
                     }
-                }
-                catch (Exception e)
-                {
-                    _onError?.Invoke($"ERROR: connection failed, {e.Message}");
-                    return;
-                }
 
-            }
-        }
-
-        private async Task RetrieveDataAsync(string sessionId)
-        {
-            while (!_terminateFlag)
-            {
-                using (var client = new HttpClient())
-                {
-                    var request = new HttpRequestMessage(HttpMethod.Get,
-                    $"{AICLOUD_API}/text/get?openid={_aicloudKey}&session={sessionId}");
-
-                    try
-                    {
-                        var response = await client.SendAsync(request);
-                        if (response.IsSuccessStatusCode)
-                        {
-                            var responseStr = await response.Content.ReadAsStringAsync();
-                            Debug.WriteLine(responseStr);
-                            var resObject = JsonConvert.DeserializeObject<AiServerResponse<AskChunkData>>(responseStr);
-                            if (resObject.Result)
-                            {
-                                var text = resObject.Data.Text;
-                                if (text.Length > 0)
-                                {
-                                    if (text.EndsWith("[DONE]"))
-                                    {
-                                        text = text.Substring(0, text.Length - 6);
-
-                                    }
-                                    _onTextReceived?.Invoke(text);
-                                }
-
-                                if (resObject.Data.Finish)
-                                {
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        _onError?.Invoke($"ERROR: connection interrupt, {e.Message}");
-                        return;
-                    }
+                    int wait = blankCount * 100 < 1000 ? blankCount * 100 : 1000;
+                    await Task.Delay(wait);
                 }
             }
             _onFinished?.Invoke();
@@ -156,11 +210,6 @@ namespace AskAnywhere.Services
         public void Terminate()
         {
             _terminateFlag = true;
-        }
-
-        public void SetAuthorizationKey(string key)
-        {
-            _aicloudKey = key;
         }
 
         public class AskRequest

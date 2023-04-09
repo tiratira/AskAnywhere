@@ -44,16 +44,75 @@ namespace AskAnywhere.Settings
 
         #region Language settings
 
-        public Language DisplayLanguage { get; set; } = Language.CHINESE;
-
-        public ICommand ChangeLanguageCommand { get; set; }
+        public Language DisplayLanguage
+        {
+            get
+            {
+                if (SettingsManager.Get<string>("Language") == "en-us") return Language.ENGLISH;
+                if (SettingsManager.Get<string>("Language") == "zh-cn") return Language.CHINESE;
+                SettingsManager.Set("Language", "en-us");
+                SettingsManager.SaveAll();
+                return Language.ENGLISH;
+            }
+            set
+            {
+                switch (value)
+                {
+                    case Language.CHINESE:
+                        SettingsManager.Set("Language", "zh-cn");
+                        LanguageSwitcher.Change("zh-cn");
+                        break;
+                    case Language.ENGLISH:
+                        SettingsManager.Set("Language", "en-us");
+                        LanguageSwitcher.Change("en-us");
+                        break;
+                    default:
+                        SettingsManager.Set("Language", "en-us");
+                        LanguageSwitcher.Change("en-us");
+                        break;
+                }
+                SettingsManager.SaveAll();
+                AskApp.RefreshTaskIcon();
+            }
+        }
 
         #endregion
 
 
         #region Backend settings
 
-        public ConnectionMode ConnectionMode { get; set; } = ConnectionMode.OPENAI_DIRECT;
+        public ConnectionMode ConnectionMode
+        {
+            get
+            {
+                var backendType = SettingsManager.Get<string>("BackendType");
+                if (backendType == "AskAnywhere.Services.OpenAIBackend")
+                    return ConnectionMode.OPENAI_DIRECT;
+
+                if (backendType == "AskAnywhere.Services.AICloudBackend")
+                    return ConnectionMode.AICLOUD;
+
+                if (backendType == "AskAnywhere.Services.CustomProxyServer")
+                    return ConnectionMode.OPENAI_PROXY_SERVER;
+                SettingsManager.Set("BackendType", "AskAnywhere.Services.AICloudBackend");
+                return ConnectionMode.AICLOUD;
+            }
+            set
+            {
+                switch (value)
+                {
+                    case ConnectionMode.OPENAI_DIRECT:
+                        SettingsManager.Set("BackendType", "AskAnywhere.Services.OpenAIBackend");
+                        break;
+                    case ConnectionMode.OPENAI_PROXY_SERVER:
+                        SettingsManager.Set("BackendType", "AskAnywhere.Services.CustomProxyServer");
+                        break;
+                    case ConnectionMode.AICLOUD:
+                        SettingsManager.Set("BackendType", "AskAnywhere.Services.AICloudBackend");
+                        break;
+                }
+            }
+        }
 
         public SettingPage CurrentPage { get; set; } = SettingPage.BACKEND_SETTING;
 
@@ -83,37 +142,18 @@ namespace AskAnywhere.Settings
 
         public SettingsViewModel()
         {
-            DisplayLanguage = Language.ENGLISH;
 
-            if (Properties.Settings.Default.Language == "en-us")
-                DisplayLanguage = Language.ENGLISH;
-
-            if (Properties.Settings.Default.Language == "zh-cn")
-                DisplayLanguage = Language.CHINESE;
-
-            UseProxy = Properties.Settings.Default.UseProxy;
-            ProxyAddress = Properties.Settings.Default.ProxyAddress;
-            ProxyPort = Properties.Settings.Default.ProxyPort;
-
-            if (Properties.Settings.Default.BackendType == "AskAnywhere.Services.OpenAIBackend")
-                ConnectionMode = ConnectionMode.OPENAI_DIRECT;
-
-            if (Properties.Settings.Default.BackendType == "AskAnywhere.Services.AICloudBackend")
-                ConnectionMode = ConnectionMode.AICLOUD;
-
-            if (Properties.Settings.Default.BackendType == "AskAnywhere.Services.CustomProxyServer")
-                ConnectionMode = ConnectionMode.OPENAI_PROXY_SERVER;
-
-            if (ConnectionMode == ConnectionMode.OPENAI_DIRECT)
+            UseProxy = SettingsManager.Get<bool>("UseProxy");
+            if (UseProxy)
             {
-                OpenAIApiKey = Properties.Settings.Default.BackendAuthKey;
-                AICloudKey = "";
+                ProxyAddress = SettingsManager.Get<string>("ProxyAddress");
+                ProxyPort = SettingsManager.Get<int>("ProxyPort");
             }
-            if (ConnectionMode == ConnectionMode.AICLOUD)
-            {
-                AICloudKey = Properties.Settings.Default.BackendAuthKey;
-                OpenAIApiKey = "";
-            }
+
+            OpenAIApiKey = SettingsManager.Get<string>("OpenAIApiKey");
+            AICloudKey = SettingsManager.Get<string>("AICloudKey");
+            OpenAIProxyServerUrl = SettingsManager.Get<string>("OpenAIProxyServerUrl");
+            OpenAIProxyServerSecret = SettingsManager.Get<string>("OpenAIProxyServerSecret");
 
             var command = new DelegateCommand();
 
@@ -121,55 +161,35 @@ namespace AskAnywhere.Settings
             {
                 if (ConnectionMode == ConnectionMode.OPENAI_DIRECT && string.IsNullOrEmpty(OpenAIApiKey)) return false;
                 if (ConnectionMode == ConnectionMode.AICLOUD && string.IsNullOrEmpty(AICloudKey)) return false;
+                if (ConnectionMode == ConnectionMode.OPENAI_PROXY_SERVER
+                && (string.IsNullOrEmpty(OpenAIProxyServerUrl)
+                || string.IsNullOrEmpty(OpenAIProxyServerSecret))) return false;
+                if (UseProxy && (string.IsNullOrEmpty(ProxyAddress) || ProxyPort == 0)) return false;
                 return true;
             };
 
             command.CommandAction = (_) =>
             {
-                if (ConnectionMode == ConnectionMode.OPENAI_DIRECT)
+                SettingsManager.Set("UseProxy", UseProxy);
+
+                if (UseProxy)
                 {
-                    Properties.Settings.Default.BackendAuthKey = OpenAIApiKey;
-                    Properties.Settings.Default.BackendType = "AskAnywhere.Services.OpenAIBackend";
-                }
-                if (ConnectionMode == ConnectionMode.AICLOUD)
-                {
-                    Properties.Settings.Default.BackendAuthKey = AICloudKey;
-                    Properties.Settings.Default.BackendType = "AskAnywhere.Services.AICloudBackend";
+                    SettingsManager.Set("ProxyAddress", ProxyAddress);
+                    SettingsManager.Set("ProxyPort", ProxyPort);
                 }
 
-                Properties.Settings.Default.UseProxy = UseProxy;
-                Properties.Settings.Default.ProxyAddress = ProxyAddress;
-                Properties.Settings.Default.ProxyPort = ProxyPort;
+                if (ConnectionMode == ConnectionMode.OPENAI_DIRECT) SettingsManager.Set("OpenAIApiKey", OpenAIApiKey);
+                if (ConnectionMode == ConnectionMode.OPENAI_PROXY_SERVER)
+                {
+                    SettingsManager.Set("OpenAIProxyServerUrl", OpenAIProxyServerUrl);
+                    SettingsManager.Set("OpenAIProxyServerSecret", OpenAIProxyServerSecret);
+                }
+                if (ConnectionMode == ConnectionMode.AICLOUD) SettingsManager.Set("AICloudKey", AICloudKey);
 
-                Properties.Settings.Default.Save();
+                SettingsManager.SaveAll();
             };
 
             ConfirmCommand = command;
-
-            var changeLanguageCmd = new DelegateCommand();
-            changeLanguageCmd.CanExecuteFunc = () => true;
-            changeLanguageCmd.CommandAction = (value) =>
-            {
-                var indexString = (string)value;
-                var lang = (Language)int.Parse(indexString);
-                Debug.WriteLine($"change language to {lang}");
-                switch (lang)
-                {
-                    case Language.CHINESE:
-                        Properties.Settings.Default.Language = "zh-cn";
-                        LanguageSwitcher.Change("zh-cn");
-                        break;
-                    case Language.ENGLISH:
-                        Properties.Settings.Default.Language = "en-us";
-                        LanguageSwitcher.Change("en-us");
-                        break;
-                    default:
-                        LanguageSwitcher.Change("en-us");
-                        break;
-                }
-                AskApp.RefreshTaskIcon();
-            };
-            ChangeLanguageCommand = changeLanguageCmd;
         }
     }
 }

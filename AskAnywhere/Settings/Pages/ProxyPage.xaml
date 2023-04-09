@@ -30,11 +30,11 @@
                       IsChecked="{Binding UseProxy,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
             <hc:TextBox hc:InfoElement.Placeholder="{DynamicResource Settings_Proxy_Url}"
                         IsEnabled="{Binding UseProxy}"
-                        Text="{Binding OpenAIProxyServerUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Text="{Binding ProxyAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         Margin="32 0 8 8"></hc:TextBox>
             <hc:TextBox hc:InfoElement.Placeholder="{DynamicResource Settings_Proxy_Port}"
                         IsEnabled="{Binding UseProxy}"
-                        Text="{Binding OpenAIProxyServerSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Text="{Binding ProxyPort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         Margin="32 0 8 8"></hc:TextBox>
         </StackPanel>
     </Border>

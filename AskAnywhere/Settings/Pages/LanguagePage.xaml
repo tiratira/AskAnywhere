@@ -28,16 +28,12 @@
     <Border>
         <StackPanel Margin="8">
             <RadioButton Margin="8"
-                         IsChecked="{Binding DisplayLanguage,Converter={StaticResource DisplayLanguageToIntConverter}, ConverterParameter=0}"
-                         Command="{Binding ChangeLanguageCommand}"
-                         CommandParameter="0"
+                         IsChecked="{Binding DisplayLanguage,Mode=TwoWay,Converter={StaticResource DisplayLanguageToIntConverter}, ConverterParameter=0}"
                          HorizontalAlignment="Left"
                          GroupName="langgr"
                          Content="中文" />
             <RadioButton Margin="8"
-                         IsChecked="{Binding DisplayLanguage,Converter={StaticResource DisplayLanguageToIntConverter}, ConverterParameter=1}"
-                         Command="{Binding ChangeLanguageCommand}"
-                         CommandParameter="1"
+                         IsChecked="{Binding DisplayLanguage,Mode=TwoWay,Converter={StaticResource DisplayLanguageToIntConverter}, ConverterParameter=1}"
                          HorizontalAlignment="Left"
                          GroupName="langgr"
                          Content="English" />
