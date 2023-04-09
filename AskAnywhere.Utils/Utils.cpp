@@ -109,6 +109,23 @@ bool Utils::SendTextToCaret(System::IntPtr ptrWindow, System::String ^ text) {
 
   for (size_t i = 0; i < text->Length; i++) {
     auto part = text[i];
+    // if (part == '\n') {
+    //   Debug::WriteLine("ªª––¡À£°");
+    //   // INPUT inputs[2] = {};
+    //   // ZeroMemory(inputs, sizeof(inputs));
+    //   // inputs[0].type = INPUT_KEYBOARD;
+    //   // inputs[0].ki.wVk = VK_RETURN;
+    //   // inputs[1].type = INPUT_KEYBOARD;
+    //   // inputs[1].ki.wVk = VK_RETURN;
+    //   // inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
+    //   // UINT uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+    //   // if (uSent != ARRAYSIZE(inputs)) {
+    //   //   Debug::WriteLine("send failed!");
+    //   // }
+    //   //keybd_event(VK_RETURN, 0x1C, 0, 0);
+    //   //keybd_event(VK_RETURN, 0x1C, KEYEVENTF_KEYUP, 0);
+    //
+    // } else
     SendMessage(info.hwndFocus, WM_IME_CHAR, (WPARAM)part, 0);
   }
 

@@ -15,6 +15,7 @@ using NHotkey.Wpf;
 using NHotkey;
 using AskAnywhere.i18n;
 using AskAnywhere.Settings;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 namespace AskAnywhere
 {
@@ -124,6 +125,9 @@ namespace AskAnywhere
 
         private void OnAsk(object? sender, HotkeyEventArgs e)
         {
+            SendText("哈哈哈\n哈哈哈\n哈哈哈");
+
+            // if there is an active dialog, we should quit~
             if (_dialog != null && _dialog.IsActive) return;
 
             if (!Utils.GetCaretPosition(out _cachedX, out _cachedY, out _cachedWidth, out _cachedHeight, out _hWnd))
@@ -131,7 +135,10 @@ namespace AskAnywhere
                 Debug.WriteLine("no caret found or error occurs.");
                 return;
             }
-            Debug.WriteLine($"caret pos: {_cachedX}, {_cachedY}");
+
+            // while no caret focused on screen, 0,0 returned thus we dont need to spawn ask dialog.
+            if (_cachedX == 0 && _cachedY == 0)
+                return;
 
             // We get the target backend type name here from settings.
             var backendTypeName = SettingsManager.Get<string>("BackendType");
@@ -156,13 +163,13 @@ namespace AskAnywhere
                 throw new Exception("ERROR: no backend instance created!");
             }
 
-            // while no caret focused on screen, 0,0 returned thus we dont need to spawn ask dialog.
-            if (_cachedX == 0 && _cachedY == 0)
-                return;
-
+            // spawn a ask bar with a preset view model.
             _vm = new AskDialogViewModel
             {
+                // command list
                 AskCommands = _commands,
+
+                // command while confirm triggered (typically ENTER button down)
                 ConfirmCommand = new RelayCommand(async () =>
                 {
                     Debug.WriteLine($"mode:{_vm.AskMode}, target:{_vm.AskTarget}, prompt:{_vm.Prompt}");
@@ -179,6 +186,8 @@ namespace AskAnywhere
                         return;
                     }
 
+                    DateTime timeStamp = DateTime.Now;
+
                     // now we use async stream to receive text
                     await foreach (var chunk in _backendService.Ask(_vm.AskMode, _vm.AskTarget, requestPrompt))
                     {
@@ -192,8 +201,13 @@ namespace AskAnywhere
                             }
 
                             // hack: to avoid caret being inactive.
-                            System.Windows.Forms.SendKeys.SendWait("{LEFT}");
-                            System.Windows.Forms.SendKeys.SendWait("{RIGHT}");
+                            var currentTime = DateTime.Now;
+                            if (currentTime.Subtract(timeStamp).TotalMilliseconds > 4000)
+                            {
+                                timeStamp = currentTime;
+                                System.Windows.Forms.SendKeys.SendWait("{LEFT}");
+                                System.Windows.Forms.SendKeys.SendWait("{RIGHT}");
+                            }
 
                             SendText(chunk.Data);
 
@@ -296,10 +310,17 @@ namespace AskAnywhere
 
                 if (i < parts.Length - 1)
                 {
-                    System.Windows.Forms.SendKeys.SendWait("+({ENTER})");
+                    //Clipboard.SetDataObject(" \n", true);
+                    //System.Windows.Forms.SendKeys.SendWait("^v");
+                    System.Windows.Forms.SendKeys.SendWait("{ENTER}");
                     await Task.Delay(50);
                 }
             }
+
+            //if (!Utils.SendTextToCaret(_hWnd, data))
+            //{
+            //    Debug.WriteLine("ERROR: can not send text!");
+            //}
 
             //System.Windows.Clipboard.SetDataObject(data, true);
             //SendKeys.SendWait("^v");

@@ -15,11 +15,12 @@
 - Spawn an ask dialog from anywhere with `Ctrl+Alt+?`
 - Command triggers starting with `/`
 - Code mode and Translator mode support
+- Chinese and English language support
 - More features on the way
 
 ## Limitations
-- Currently support Chinese only, more to come
 - Occasionally spawn asking bar at wrong position
+- Could not output `\n` char for now. 
 
 ## Prerequisites
 - Running Windows 10(19041+) or Windows 11 system
@@ -47,10 +48,5 @@
 
 <img title="badge" alt="Alt text" src="./Screenshots/2.png">
 
-- Translation mode
 
-<img title="badge" alt="Alt text" src="./Screenshots/3.png">
 
-- Code mode
-
-<img title="badge" alt="Alt text" src="./Screenshots/4.png">
