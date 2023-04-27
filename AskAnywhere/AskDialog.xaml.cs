@@ -36,6 +36,11 @@ namespace AskAnywhere
             BeginAnimation(TopProperty, animY);
         }
 
+        public double CalculateActualWidth()
+        {
+            return StateIcon.ActualWidth + StateTextBlock.ActualWidth + 64;
+        }
+
         public void ChangeSize(double x, double y)
         {
             var easing = new QuadraticEase();

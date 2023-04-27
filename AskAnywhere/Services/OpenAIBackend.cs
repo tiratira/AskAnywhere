@@ -23,14 +23,18 @@ namespace AskAnywhere.Services
         private Action<string>? _onTextReceived;
         private string _apiKey;
 
+        private CancellationTokenSource _cancellationToken;
+
         public OpenAIBackend()
         {
             _apiKey = SettingsManager.Get<string>("OpenAIApiKey");
+            _cancellationToken = new CancellationTokenSource();
         }
 
         public async IAsyncEnumerable<ResultChunk> Ask(AskMode mode, string target, string prompt)
         {
-            await foreach (var item in GenerateAnswerStream(mode, target, prompt, CancellationToken.None))
+            _cancellationToken = new CancellationTokenSource();
+            await foreach (var item in GenerateAnswerStream(mode, target, prompt, _cancellationToken.Token))
             {
                 yield return item;
             }
@@ -104,11 +108,25 @@ namespace AskAnywhere.Services
                 using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
                 var buffer = new byte[1024];
                 int bytes;
-                while ((bytes = await stream.ReadAsync(buffer, cancellationToken)) > 0)
+                string stringBuffer = "";
+                while ((bytes = await stream.ReadAsync(buffer, cancellationToken)) > 0 || !string.IsNullOrEmpty(stringBuffer))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var responseText = Encoding.UTF8.GetString(buffer, 0, bytes);
-                    var parts = responseText.Split("data: ");
+                    string responseText = "";
+                    if(bytes > 0)
+                    {
+                        responseText = Encoding.UTF8.GetString(buffer, 0, bytes);
+                    }
+
+                    if (string.IsNullOrEmpty(stringBuffer) || (!string.IsNullOrEmpty(responseText) && !responseText.StartsWith("data:")))
+                    {
+                        stringBuffer += responseText;
+                        continue;
+                    }
+
+                    var parts = stringBuffer.Split("data: ");
+                    stringBuffer = responseText;
+
                     foreach (var part in parts)
                     {
                         if (string.IsNullOrEmpty(part)) continue;
@@ -117,7 +135,15 @@ namespace AskAnywhere.Services
                             yield return new ResultChunk(ResultChunk.ChunkType.FINISH, "");
                             yield break;
                         }
-                        var chunk = JsonConvert.DeserializeObject<ChatCompletionChunk>(part);
+                        ChatCompletionChunk? chunk = null;
+                        try
+                        {
+                            chunk = JsonConvert.DeserializeObject<ChatCompletionChunk>(part);
+                        }
+                        catch (Exception)
+                        {
+                            chunk = null;
+                        }
                         if (chunk == null)
                         {
                             yield return new ResultChunk(ResultChunk.ChunkType.ERROR, "ERR: Data incomplete");
@@ -127,6 +153,7 @@ namespace AskAnywhere.Services
                         if (!string.IsNullOrEmpty(content))
                         {
                             yield return new ResultChunk(ResultChunk.ChunkType.DATA, content);
+                            continue;
                         }
                     }
                 }
@@ -135,9 +162,9 @@ namespace AskAnywhere.Services
             {
                 Debug.WriteLine(response.ToString());
                 yield return new ResultChunk(ResultChunk.ChunkType.ERROR, $"网络请求错误 {response.StatusCode}");
+                yield break;
             }
         }
-
 
         private ChatCompletionData CreateTextCompleteData(AskMode mode, string target, string prompt)
         {
@@ -180,7 +207,7 @@ namespace AskAnywhere.Services
 
         public void Terminate()
         {
-            throw new NotImplementedException();
+            _cancellationToken.Cancel();
         }
     }
 }

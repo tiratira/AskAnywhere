@@ -109,6 +109,7 @@
                     </Border.Style>
                     <StackPanel Orientation="Horizontal">
                         <Image Width="16"
+                               x:Name="StateIcon"
                                Height="16"
                                Margin="4 0 0 0">
                             <Image.Style>
@@ -149,6 +150,7 @@
                             </Image.Style>
                         </Image>
                         <TextBlock FontSize="14"
+                                   x:Name="ModeTextBlock"
                                    FontWeight="Bold"
                                    Foreground="White"
                                    VerticalAlignment="Center"
@@ -196,7 +198,8 @@
                     </StackPanel>
                 </Border>
 
-                <TextBlock FontSize="14"
+                <TextBlock x:Name="StateTextBlock"
+                           FontSize="14"
                            FontWeight="Bold"
                            VerticalAlignment="Center"
                            Margin="2 0 0 0">
