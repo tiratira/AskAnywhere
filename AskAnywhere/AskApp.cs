@@ -113,6 +113,8 @@ namespace AskAnywhere
         {
             HotkeyManager.Current.AddOrReplace("AskAnything",
                 new KeyGesture(Key.OemQuestion, ModifierKeys.Control | ModifierKeys.Alt), OnAsk);
+
+            HotkeyManager.Current.AddOrReplace("AskAnythingTerminate", Key.Escape, ModifierKeys.None, OnTerminate);
         }
 
         /// <summary>
@@ -121,12 +123,16 @@ namespace AskAnywhere
         private void DisableKeyboardHook()
         {
             HotkeyManager.Current.Remove("AskAnything");
+            HotkeyManager.Current.Remove("AskAnythingTerminate");
+        }
+
+        private void OnTerminate(object? sender, HotkeyEventArgs e)
+        {
+            _backendService?.Terminate();
         }
 
         private void OnAsk(object? sender, HotkeyEventArgs e)
         {
-            SendText("哈哈哈\n哈哈哈\n哈哈哈");
-
             // if there is an active dialog, we should quit~
             if (_dialog != null && _dialog.IsActive) return;
 
@@ -174,11 +180,15 @@ namespace AskAnywhere
                 {
                     Debug.WriteLine($"mode:{_vm.AskMode}, target:{_vm.AskTarget}, prompt:{_vm.Prompt}");
 
+                    if (_dialog == null) return;
+
                     var requestPrompt = _vm.Prompt;
 
                     _vm.CurrentState = InputState.OUTPUT;
                     _vm.Prompt = "";
-                    _dialog?.ChangeSize(140, 80);
+                    //await Task.Delay(50);
+                    //var width = _dialog!.CalculateActualWidth();
+                    _dialog!.ChangeSize(144, 80);
 
                     if (!Utils.SetActiveWindowAndCaret(_hWnd, _cachedX, _cachedY))
                     {
@@ -189,57 +199,58 @@ namespace AskAnywhere
                     DateTime timeStamp = DateTime.Now;
 
                     // now we use async stream to receive text
-                    await foreach (var chunk in _backendService.Ask(_vm.AskMode, _vm.AskTarget, requestPrompt))
+                    try
                     {
-
-                        if (chunk.Type == ResultChunk.ChunkType.DATA)
+                        await foreach (var chunk in _backendService.Ask(_vm.AskMode, _vm.AskTarget, requestPrompt))
                         {
-                            if (!Utils.SetActiveWindowAndCaret(_hWnd, _cachedX, _cachedY))
+
+                            if (chunk.Type == ResultChunk.ChunkType.DATA)
                             {
-                                Debug.WriteLine("set caret failed, please check out the code.");
-                                return;
+                                if (!Utils.SetActiveWindowAndCaret(_hWnd, _cachedX, _cachedY))
+                                {
+                                    Debug.WriteLine("set caret failed, please check out the code.");
+                                    return;
+                                }
+
+                                // hack: to avoid caret being inactive.
+                                var currentTime = DateTime.Now;
+                                if (currentTime.Subtract(timeStamp).TotalMilliseconds > 4000)
+                                {
+                                    timeStamp = currentTime;
+                                    System.Windows.Forms.SendKeys.SendWait("{LEFT}");
+                                    System.Windows.Forms.SendKeys.SendWait("{RIGHT}");
+                                }
+
+                                await SendText(chunk.Data);
+
+                                if (!Utils.GetCaretPosition(out _cachedX, out _cachedY, out _cachedWidth, out _cachedHeight, out _hWnd))
+                                {
+                                    Debug.WriteLine("no caret found or error occurs.");
+                                    return;
+                                }
+
+                                if (_cachedX > 0 && _cachedY > 0)
+                                    _dialog?.MoveTo((_cachedX - 20) / _dpiRatio, (_cachedY + _cachedHeight - 22) / _dpiRatio);
                             }
 
-                            // hack: to avoid caret being inactive.
-                            var currentTime = DateTime.Now;
-                            if (currentTime.Subtract(timeStamp).TotalMilliseconds > 4000)
+                            if (chunk.Type == ResultChunk.ChunkType.FINISH)
                             {
-                                timeStamp = currentTime;
-                                System.Windows.Forms.SendKeys.SendWait("{LEFT}");
-                                System.Windows.Forms.SendKeys.SendWait("{RIGHT}");
+                                Debug.WriteLine("finish detected!");
+                                await CloseDialogWithState(InputState.FINISH);
+                                break;
                             }
 
-                            SendText(chunk.Data);
-
-                            if (!Utils.GetCaretPosition(out _cachedX, out _cachedY, out _cachedWidth, out _cachedHeight, out _hWnd))
+                            if (chunk.Type == ResultChunk.ChunkType.ERROR)
                             {
-                                Debug.WriteLine("no caret found or error occurs.");
-                                return;
+                                Debug.WriteLine("err detected!");
+                                await CloseDialogWithState(InputState.ERROR);
+                                break;
                             }
-
-                            if (_cachedX > 0 && _cachedY > 0)
-                                _dialog?.MoveTo((_cachedX - 20) / _dpiRatio, (_cachedY + _cachedHeight - 22) / _dpiRatio);
                         }
-
-                        if (chunk.Type == ResultChunk.ChunkType.FINISH)
-                        {
-                            if (_vm != null) _vm.CurrentState = InputState.FINISH;
-                            _dialog?.ChangeSize(112, _dialog.Height);
-                            await Task.Delay(1000);
-                            _dialog?.Close();
-                            _dialog = null;
-                            break;
-                        }
-
-                        if (chunk.Type == ResultChunk.ChunkType.ERROR)
-                        {
-                            if (_vm != null) _vm.CurrentState = InputState.ERROR;
-                            _dialog?.ChangeSize(112, _dialog.Height);
-                            await Task.Delay(1000);
-                            _dialog?.Close();
-                            _dialog = null;
-                            break;
-                        }
+                    }
+                    catch (Exception e)
+                    {
+                        await CloseDialogWithState(InputState.ERROR);
                     }
                 }),
 
@@ -269,6 +280,17 @@ namespace AskAnywhere
             e.Handled = true;
         }
 
+        private async Task CloseDialogWithState(InputState state)
+        {
+            if (_vm != null) _vm.CurrentState = state;
+            await Task.Delay(50);
+            var width = _dialog!.CalculateActualWidth();
+            _dialog!.ChangeSize(width, _dialog.Height);
+            await Task.Delay(2000);
+            _dialog!.Close();
+            _dialog = null;
+        }
+
         private void Dialog_LostFocus(object sender, RoutedEventArgs e)
         {
             try
@@ -290,7 +312,7 @@ namespace AskAnywhere
         /// we copy text parts into copyboard, and simulate a 'ctrl+v' key input on target caret place.
         /// </summary>
         /// <param name="data"></param>
-        public async void SendText(string data)
+        public async Task SendText(string data)
         {
             if (string.IsNullOrEmpty(data))
             {

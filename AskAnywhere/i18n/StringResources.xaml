@@ -12,7 +12,7 @@
     <system:String x:Key="AskMode_Hint">ask anything...</system:String>
     <system:String x:Key="Ask_Thinking">Thinking</system:String>
     <system:String x:Key="Ask_Done">Done</system:String>
-    <system:String x:Key="Ask_Error">Error</system:String>
+    <system:String x:Key="Ask_Error">Terminated</system:String>
 
     <!--settings dialog-->
     <system:String x:Key="Settings_Title">Ask Anywhere Settings</system:String>
