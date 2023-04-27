@@ -230,7 +230,7 @@ namespace AskAnywhere
                                 }
 
                                 if (_cachedX > 0 && _cachedY > 0)
-                                    _dialog?.MoveTo((_cachedX - 20) / _dpiRatio, (_cachedY + _cachedHeight - 22) / _dpiRatio);
+                                    _dialog?.MoveTo((_cachedX - 20) / _dpiRatio, (_cachedY + _cachedHeight - 22) / _dpiRatio, false);
                             }
 
                             if (chunk.Type == ResultChunk.ChunkType.FINISH)

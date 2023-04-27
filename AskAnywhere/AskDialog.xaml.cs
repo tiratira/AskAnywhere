@@ -20,20 +20,28 @@ namespace AskAnywhere
             InputBox.Focus();
         }
 
-        public void MoveTo(double x, double y)
+        public void MoveTo(double x, double y, bool animated = true)
         {
-            var easing = new QuadraticEase();
-            easing.EasingMode = EasingMode.EaseOut;
+            if (animated)
+            {
+                var easing = new QuadraticEase();
+                easing.EasingMode = EasingMode.EaseOut;
 
-            var animX = new DoubleAnimation(Left, x, new Duration(TimeSpan.FromMilliseconds(250)));
-            animX.EasingFunction = easing;
+                var animX = new DoubleAnimation(Left, x, new Duration(TimeSpan.FromMilliseconds(250)));
+                animX.EasingFunction = easing;
 
-            var animY = new DoubleAnimation(Top, y, new Duration(TimeSpan.FromMilliseconds(250)));
-            animY.EasingFunction = easing;
+                var animY = new DoubleAnimation(Top, y, new Duration(TimeSpan.FromMilliseconds(250)));
+                animY.EasingFunction = easing;
 
 
-            BeginAnimation(LeftProperty, animX);
-            BeginAnimation(TopProperty, animY);
+                BeginAnimation(LeftProperty, animX);
+                BeginAnimation(TopProperty, animY);
+            }
+            else
+            {
+                Left = x;
+                Top = y;
+            }
         }
 
         public double CalculateActualWidth()
